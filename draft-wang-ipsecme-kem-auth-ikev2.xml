@@ -31,7 +31,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
   updates=""
   submissionType="IETF"
   xml:lang="en"
-  version="3">
+  version="2">
 <!-- [REPLACE] 
        * docName with name of your draft
      [CHECK] 
@@ -43,7 +43,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 -->
 
 <front>
-<title abbrev="KEM based Authentication for the IKEv2"> KEM based Authentication for the IKEv2 with Post-quantum Security </title>
+<title abbrev="KEM-based Authentication for the IKEv2"> KEM-based Authentication for the IKEv2 with Post-quantum Security </title>
 <!--  [REPLACE/DELETE] abbrev. The abbreviated title is required if the full title is longer than 39 characters -->
 
 <seriesInfo name="Internet-Draft" value="draft-wang-ipsecme-kem-auth-ikev2-02"/>
@@ -69,6 +69,19 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         <email>Wang.Guilin@huawei.com</email>  
       </address>
     </author>
+
+    <author initials='V.' surname="Smyslov" fullname='Valery Smyslov'>
+      <organization>ELVIS-PLUS</organization>
+      <address>
+        <postal>
+          <street>PO Box 81</street>
+            <city>Moscow (Zelenograd)</city>
+            <code>124460</code>
+            <country>RU</country>
+          </postal>
+        <email>svan@elvis.ru</email>
+      </address>
+    </author>
 	
 <date/>
 <!-- On draft subbmission:
@@ -88,13 +101,13 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     <!-- [REPLACE/DELETE]. Multiple allowed.  Keywords are incorporated into HTML output files for 
          use by search engines. -->
 
-<abstract>
+    <abstract>
       <!-- RFC 9370 specifies a framework that supports mulitple key encapsulation mechanisms (KEMs) in the Internet Key Exchange Protocol Version 2 (IKEv2) by allowing up to 7 layers of additiona KEMs employed with the oringal ECDH to derive the final shared secret keys for IPsec protocols. The primitive goal is to mitigate the security threat against quantum computers by hybriding additional post-quantum (PQ) KEMs with the orinigal ECDH key exchange. This draft specifies how one QP KEMs, FrodoKEM, is instantiated in the IKEv2 as the additional KEMs with the main ECDH to achieve hybrid key agreement.-->
 	  
-	 <t> This draft specifies a new authentication mechanism, called KEM based authentication, for the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>. This is motivated by the fact that ML-KEM is much more efficient that ML-DSA, which are the post-quantum algoirhtms for mitigating the pontential security threats again quantum computers. The KEM based authenticationth for the IKV2 is achieved via introduing a new value of the IKEv2 Authentication Method registry mantained by IANA. For using the new authentication method, two peers <bcp14>MUST</bcp14> send the SUPPORTED_AUTH_METHODS Notify, defined by  <xref target="RFC9593"> </xref>, to negotiate the supported KEM algorithms. After that, the correponding KEM certificates and cipthertext are exchanged via the IKE_INTERMEDIATE Exchange. Finally, the IKE messages are authenticated via the shared secret encapsulated between the two peers. This documents also specifies the instantiation with ML-KEM for this new general authenticaiton method for the IKEv2. 
- </t>
-
-	  <t> [EDNOTE: Code points for KEM-based authentication may need to be assigned in the IKEv2 Authenticaion Method registry, maintained by IANA] </t>
+	 <t> This draft specifies a new authentication mechanism, called KEM (Key Encapsulation Mechanism) -based authentication, 
+     for the Internet Key Exchange Protocol Version 2 (IKEv2). This is motivated by the fact that some post-quantum KEMs (like  ML-KEM)
+     are more efficient than post-quantum signature algorithms (like ML-DSA).
+     </t>
     </abstract>
 
 <!-- <note title="Editorial Note (To be removed by RFC Editor)">
@@ -114,73 +127,117 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 
 <section title="Notes of Change">
 
-<t> Two changes have been made in version 01, as a response to comments received at 122 meeting: </t>
+<t> Version -02 was completely rewritten to accommodate ideas expressed in PQuAKE protocol.</t>
+
+<t> Two changes have been made in version -01, as a response to comments received at 122 meeting: </t>
 
 <ul spacing="normal">
          
-        <li> More details abouth how each side does for running KEM authentication in <xref target="Exchanges"></xref>. </li>
+        <li> More details about how each side does for running KEM authentication in <xref target="Exchanges"></xref>. </li>
 		
-        <li> Added <xref target="PPK"></xref> for KEM authentication with preshared public key. </li>
+        <li> Added section about KEM authentication with preshared public key. </li>
         </ul>
 </section>
 
 <section title="Introduction">
 
-<t> Cryptographically-relevant quantum computers (CRQC) pose a threat to cryptographically protected data. In particular, the so-called harvest-now-and-decrypt-later (HNDL) attack is considered an imminent threat. To mitigate this threat again the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>, multiple key exchanges in the IKEv2 <xref target="RFC9370"></xref> was introduced to achieve post-quantum (PQ) security for the exchange. To offering post-quantum security for the authentication in the IKEv2, "Announcing Supported Authentication Methods in the Internet Key Exchange Protocol Version 2 (IKEv2)" <xref target="RFC9593"></xref> specifies a new Notify type, called the SUPPORTED_AUTH_METHODS, which allows two peers to indicate the list of supported authentication methods while establishing IKEv2 SA. One purpose of <xref target="RFC9593"></xref> is to support post-quantum signature algorithms for authenticaion in the IKEv2, as further described by the following drafts.</t>  
+    <t> Cryptographically-relevant quantum computers (CRQC) pose a threat to cryptographically protected data. In particular, 
+    the so-called harvest-now-and-decrypt-later (HNDL) attack is considered an imminent threat. To mitigate this threat against 
+    the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>, multiple key exchanges in 
+    the IKEv2 <xref target="RFC9370"></xref> was introduced to achieve post-quantum (PQ) security for the key exchange. 
+    <!-- To offering post-quantum security for the authentication in the IKEv2, "Announcing Supported Authentication Methods 
+    in the Internet Key Exchange Protocol Version 2 (IKEv2)" <xref target="RFC9593"></xref> specifies a new Notify type, 
+    called the SUPPORTED_AUTH_METHODS, which allows two peers to indicate the list of supported authentication methods 
+    while establishing IKEv2 SA. One purpose of <xref target="RFC9593"></xref> is to support post-quantum signature algorithms 
+    for authenticaion in the IKEv2, as further described by the following drafts.--></t>  
 
-<t> "Signature Authentication in the Internet Key Exchange Version 2 (IKEv2)" <xref target="I-D.ietf-ipsecme-ikev2-pqc-auth"></xref> specifies how NIST PQ digital algorithms ML-DSA <xref target="FIPS204"></xref> and SLH-DSA <xref target="FIPS205"></xref> can be used in the IKEv2 by indicating the supported signature algorithms via exchanging the Notify SIGNATURE_HASH_ALGORITHMS, defined in <xref target="RFC7427"></xref>. Similarly, "IKEv2 Support of ML-DSA" <xref target="I-D.sfluhrer-ipsecme-ikev2-mldsa"></xref> specifies how ML-DSA can be run in the IKEv2, by indicating the supported signature algorithms via exchanging the SUPPORTED_AUTH_METHODS Notify, defined in <xref target="RFC9593"></xref>.  On the other hand, "Post-Quantum Traditional (PQ/T) Hybrid PKI Authentication in the Internet Key Exchange Version 2 (IKEv2)" <xref target="I-D.hu-ipsecme-pqt-hybrid-auth"> </xref> specifies how to run general hybrid PQ/T digital algorithms in the IKEv2 via introducing some extensions in the SUPPORTED_AUTH_METHODS Notify. </t>
+    <t> "Signature Authentication in the Internet Key Exchange Version 2 (IKEv2)" <xref target="I-D.ietf-ipsecme-ikev2-pqc-auth"></xref> specifies 
+    how NIST PQ digital algorithms ML-DSA <xref target="FIPS204"></xref> and SLH-DSA <xref target="FIPS205"></xref> can be used in the IKEv2. 
+    <!-- by indicating the supported signature algorithms via exchanging the Notify SIGNATURE_HASH_ALGORITHMS, defined in <xref target="RFC7427"></xref>. --> 
+    <!-- Similarly, "IKEv2 Support of ML-DSA" <xref target="I-D.sfluhrer-ipsecme-ikev2-mldsa"></xref> specifies how ML-DSA can be run in the IKEv2, by indicating 
+    the supported signature algorithms via exchanging the SUPPORTED_AUTH_METHODS Notify, defined in <xref target="RFC9593"></xref>.  --> On the other hand, 
+    "Post-Quantum Traditional (PQ/T) Hybrid PKI Authentication in the Internet Key Exchange Version 2 (IKEv2)" 
+    <xref target="I-D.hu-ipsecme-pqt-hybrid-auth"> </xref> specifies how to run general hybrid PQ/T digital algorithms in the IKEv2<!-- via introducing 
+    some extensions in the SUPPORTED_AUTH_METHODS Notify -->. </t>
 
-<t> For all of those Internet standard drafts, it is the same that the corresponding public key certificates and singatures for the involved siganture algorithms are exchanged via the IKE_INTERMEDIATE Exchange, defined in <xref target="RFC9242"></xref>. </t>
+    <!-- <t> For all of those Internet standard drafts, it is the same that the corresponding public key certificates and singatures for the involved 
+    siganture algorithms are exchanged via the IKE_INTERMEDIATE Exchange, defined in <xref target="RFC9242"></xref>. </t> -->
 
-<t> Motivated by the fact that ML-KEM <xref target="FIPS203"></xref> is much more efficient than ML-DSA <xref target="FIPS204"></xref>, "KEM-based Authentication for TLS 1.3" <xref target="I-D.celi-wiggers-tls-authkem"></xref> <xref target="I-D.wiggers-tls-authkem-psk"></xref> specifies how KEM can be used to achieve post-quantum secure authentication for the TLS 1.3 protocol. The basic idea is as follows: when one entity A receives the certified long term public key of another entity B, A can authenticate B by encapsulating a secret key k using B's KEM public key, and confirming that the communicating entity is indeed B if the entity can successfully return the correct k to A. The seminal idea for TLS is presented in  <xref target="SSW20"></xref>, followed by a number of research papers then. Besides saving communication overhead and computational time, as pointed out in <xref target="I-D.celi-wiggers-tls-authkem"></xref>, KEM based authentication also benefits to reduce implementation code size, as the code for PQ singature may not need, and KEM based authentication can re-use the KEM code for ephemeral key establishment. </t>
+    <t> Motivated by the fact that ML-KEM <xref target="FIPS203"></xref> is much more efficient than ML-DSA <xref target="FIPS204"></xref>, 
+    "KEM-based Authentication for TLS 1.3" <xref target="I-D.celi-wiggers-tls-authkem"></xref> <xref target="I-D.wiggers-tls-authkem-psk"></xref> 
+    specifies how KEM can be used to achieve post-quantum secure authentication for the TLS 1.3 protocol. The basic idea is as follows: 
+    when one entity A receives the certified long term public key of another entity B, A can authenticate B by encapsulating a secret key k 
+    using B's KEM public key, and confirming that the communicating entity is indeed B if the entity can successfully return the correct k to A. 
+    The similar idea for TLS is presented in  <xref target="SSW20"></xref>, followed by a number of research papers then. 
+    Besides saving communication overhead and computational time, as pointed out in <xref target="I-D.celi-wiggers-tls-authkem"></xref>, 
+    KEM-based authentication also benefits to reduce implementation code size, as the code for PQ signature may not need, and KEM-based authentication 
+    can re-use the KEM code for ephemeral key establishment. </t>
     
- <t> This draft specifies how to realise KEM based authentication for the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>. This is achieved by defining a new authenication method, called KEM based Authentication. Namely, this draft asks to add a new value of the "IKEv2 Authenticaion Method" registry <xref target="IANA-IKEv2"></xref>, mantained by IANA. To run this new authenticaiton method, two peers <bcp14>MUST</bcp14> send the SUPPORTED_AUTH_METHODS Notify, defined by  <xref target="RFC9593"> </xref>, in the IKE_SA_INIT Exchange, to negotiate the supported KEM algorithms. After that, the correponding KEM certificates and cipthertext are exchanged via the IKE_INTERMEDIATE Exchange <xref target="RFC9593"> </xref>. This documents also specified the instantiation with ML-KEM for this new general authenticaiton method for the IKEv2. </t>
-
+    <t> This draft specifies how to use KEM-based authentication for the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>. 
+    <!-- This is achieved by defining a new authenication method, called KEM-based Authentication. Namely, this draft asks to add a new value of 
+    the "IKEv2 Authenticaion Method" registry <xref target="IANA-IKEv2"></xref>, mantained by IANA. To run this new authenticaiton method, 
+    two peers <bcp14>MUST</bcp14> send the SUPPORTED_AUTH_METHODS Notify, defined by  <xref target="RFC9593"> </xref>, in the IKE_SA_INIT Exchange, 
+    to negotiate the supported KEM algorithms. After that, the correponding KEM certificates and cipthertext are exchanged via 
+    the IKE_INTERMEDIATE Exchange <xref target="RFC9593"> </xref>.--> <!-- This documents also specified the instantiation with ML-KEM for this new 
+    general authenticaiton method for the IKEv2. --></t>
 		
 </section>
 </section>
 
-<section>
+    <section>
         <name>Requirements Language</name>
-        <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
-          "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT
-          RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-          interpreted as described in BCP 14 <xref target="RFC2119"/>
-          <xref target="RFC8174"/> when, and only when, they appear in
-          all capitals, as shown here.</t>
+        <t> The key words "<bcp14>MUST</bcp14>", "<bcp14>MUST NOT</bcp14>", "<bcp14>REQUIRED</bcp14>", "<bcp14>SHALL</bcp14>", "<bcp14>SHALL NOT</bcp14>", 
+        "<bcp14>SHOULD</bcp14>", "<bcp14>SHOULD NOT</bcp14>",  "<bcp14>RECOMMENDED</bcp14>", "<bcp14>NOT RECOMMENDED</bcp14>", "<bcp14>MAY</bcp14>", 
+        and "<bcp14>OPTIONAL</bcp14>" in this document are to be interpreted as described in BCP 14 <xref target="RFC2119" /> <xref target="RFC8174" /> when, 
+        and only when, they appear in all capitals, as shown here.</t>
     </section>
       <!-- [CHECK] The 'Requirements Language' section is optional -->
 	  
 <section>  <name> Key Encapsulation Mechanism and Digital Signature</name>
     
-	<t> Key encapsulation mechanism (KEM) is a kind of key exchange, which allows one entity to encapsulate a secret key under a (longterm or ephemeral) public key of another entity. By following the definiton given in <xref target="I-D.ietf-ipsecme-ikev2-mlkem"></xref>, a KEM consists of three algorithms:
+	<t> Key encapsulation mechanism (KEM) is a kind of key exchange, which allows one entity to encapsulate a secret key under a 
+    (longterm or ephemeral) public key of another entity. By following the definition given in <xref target="I-D.ietf-ipsecme-ikev2-mlkem"></xref>, 
+    a KEM consists of three algorithms:
     </t>
+
 	<ul spacing="normal">
-        <li>KeyGen(k) -> (pk, sk): A probabilistic key generation algorithm, which generates a public encapsulation key pk and a secret decapsulation key sk, when a security parameter k is given.</li>
-        <li>Encaps(pk) -> (ct, ss): A probabilistic encapsulation algorithm, which takes as input a public encapsulation key pk and outputs a ciphertext ct and shared secret ss. </li>
+        <li>KeyGen(k) -> (pk, sk): A probabilistic key generation algorithm, which generates a public encapsulation key pk and 
+        a secret decapsulation key sk, when a security parameter k is given.</li>
+        <li>Encaps(pk) -> (ct, ss): A probabilistic encapsulation algorithm, which takes as input a public encapsulation key pk and 
+        outputs a ciphertext ct and shared secret ss. </li>
         <li> Decaps(sk, ct) -> ss: A decapsulation algorithm, which takes as input a secret decapsulation key sk and ciphertext ct and
-      outputs a shared secret ss.</li>
+        outputs a shared secret ss.</li>
       </ul>
 	  
-	<t>  By following the definiton given in <xref target="I-D.ietf-pquip-hybrid-signature-spectrums"></xref>, a signature scheme consists of the following three algorithms: </t>
+	<t>  By following the definition given in <xref target="I-D.ietf-pquip-hybrid-signature-spectrums"></xref>, a signature scheme 
+    consists of the following three algorithms: </t>
 
       <ul spacing="normal">
-	  <li> SKeyGen(k) -> (spk, ssk): A probabilistic key generation algorithm, which generates a public verifying key spk and a private signing key ssk, when a security parameter k is given..</li>
+	  <li> SKeyGen(k) -> (spk, ssk): A probabilistic key generation algorithm, which generates a public verifying key spk and 
+      a private signing key ssk, when a security parameter k is given..</li>
 	  
-	  <li> Sign(ssk, m) -> s: A deterministic or probabilistic signature generation algorithm, which takes as input a private signing key ssk and a message m, and outputs a signature s. </li>
+	  <li> Sign(ssk, m) -> s: A deterministic or probabilistic signature generation algorithm, which takes as input 
+      a private signing key ssk and a message m, and outputs a signature s. </li>
       
-	  <li> Verify(spk, s, m) -> b: A deterministic verification algorithm, which takes as input a public verifying key spk, a signature s and a message m, and outputs a bit b indicating accept (b=1) or reject (b=0) of the signature-message pair (s, m). </li>
+	  <li> Verify(spk, s, m) -> b: A deterministic verification algorithm, which takes as input a public verifying key spk, 
+      a signature s and a message m, and outputs a bit b indicating accept (b=1) or reject (b=0) of the signature-message pair (s, m). </li>
       </ul>
 
-	  <t> In August of 2024, NIST released ML-KEM <xref target="FIPS203"></xref> and ML-DSA <xref target="FIPS204"></xref>, which are both module-lattice based post-quantum algorithms. Each of both algorithms has three sets of parameters corresponding to three NIST security levels. Namely, ML-KEM-512 for Level 1, ML-KEM-768 for Level 3, and ML-KEM-1024 for for Level 5, while ML-DSA-44 for Level 2, ML-DSA-65 for Level 3, and ML-DSA-87 for Level 5. </t>
+	  <t> In August of 2024, NIST released ML-KEM <xref target="FIPS203"></xref> and ML-DSA <xref target="FIPS204"></xref>, which are both 
+      module-lattice-based post-quantum algorithms. Each of both algorithms has three sets of parameters corresponding to three NIST security levels. 
+      Namely, ML-KEM-512 for Level 1, ML-KEM-768 for Level 3, and ML-KEM-1024 for for Level 5, while ML-DSA-44 for Level 2, ML-DSA-65 for Level 3, 
+      and ML-DSA-87 for Level 5. </t>
 	  
 	  </section>
 
     <section>  <name> Comparison of ML-KEM and ML-DSA </name>
     
-	  <t> This section compares ML-KEM and ML-DSA, with respect to the sizes of key, ciphertext and signature, and also the computational overhead of key generation, encapsulaion, signing, decasulation, and verifying. </t>
+	  <t> This section compares ML-KEM and ML-DSA, with respect to the sizes of key, ciphertext and signature, and also the computational 
+      overhead of key generation, encapsulation, signing, decapsulation, and verifying. </t>
 	  
-	  <t> First of all, to compare the communication overhead when using ML-DSA and ML-KEM, data from Table 2 in <xref target="FIPS204"></xref> and Table 3 in <xref target="FIPS204"></xref> are used to generate the following <xref target="size_comp" />. The results show the comparison of keys and signature over ciphertext between ML-DSA and ML-KEM. Namely, for all corresponding security levels, the following statements can be conluded: </t>
+	  <t> First of all, to compare the communication overhead when using ML-DSA and ML-KEM, data from Table 2 in <xref target="FIPS204"></xref> and 
+      Table 3 in <xref target="FIPS204"></xref> are used to generate the following <xref target="size_comp" />. The results show the comparison 
+      of keys and signature over ciphertext between ML-DSA and ML-KEM. Namely, for all corresponding security levels, the following statements can be concluded: </t>
 	  
 	  <ul spacing="normal">
          
@@ -194,8 +251,8 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         <thead>
           <tr>
             <th></th>
-            <th align="center">Private Key/Decapaaulation Key</th>
-            <th align="center">Public Key/Encapaaulation Key</th>
+            <th align="center">Private Key/Decapsulation Key</th>
+            <th align="center">Public Key/Encapsulation Key</th>
             <th align="center">Signature/Ciphertext</th>
           </tr>
         </thead>
@@ -221,13 +278,21 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         </tbody>
       </table>
 
-<t> Specifically, for the three security levels, when ML-KEM is used to replace ML-DSA for authentication, the saved communication overhead, namely public key+signature for ML-DSA and encapsulation key+ciphertext for ML-KEM, is 2,164, 2,989, and 4,083 bytes, respectively. Those savings are helpful to improve the performance of IKEv2. In fact, as shown in the experiment in simulated environment, the average time delay for IKEv2 can increase a few times due to large size of PQ public key, ciphertext and signature, especially when the IP packet loss rate reaches about 1%. </t>
+      <t> Specifically, for the three security levels, when ML-KEM is used to replace ML-DSA for authentication, the saved communication overhead, 
+      namely public key+signature for ML-DSA and encapsulation key+ciphertext for ML-KEM, is 2,164, 2,989, and 4,083 bytes, respectively. 
+      Those savings are helpful to improve the performance of IKEv2. In fact, as shown in the experiment in simulated environment, 
+      the average time delay for IKEv2 can increase a few times due to large size of PQ public key, ciphertext and signature, 
+      especially when the IP packet loss rate reaches about 1%. </t>
 
-<t> Next, the computation overhead comparison will be given now. In <xref target="HAZ24"></xref>, the authors present their implementation results of Dilithium and Kyber, via various optimization techniques for Keccak and the two PQC algorithms. Concretely, Table 6 in <xref target="HAZ24"></xref> shows the performance comparison of Dilithium and Kyber on ARMv7 Cortex-M4 processor, presented by clock cycles. By ignoring the small difference between ML-KEM and its informal verion Kyber, also ML-DSA and its informal verion Dilithium, the following <xref target="computation_comp" /> is obtained. </t>
+      <t> Next, the computation overhead comparison will be given now. In <xref target="HAZ24"></xref>, the authors present their implementation 
+      results of Dilithium and Kyber, via various optimization techniques for Keccak and the two PQC algorithms. Concretely, Table 6 
+      in <xref target="HAZ24"></xref> shows the performance comparison of Dilithium and Kyber on ARMv7 Cortex-M4 processor, presented by clock cycles. 
+      By ignoring the small difference between ML-KEM and its informal version Kyber, also ML-DSA and its informal version Dilithium, 
+      the following <xref target="computation_comp" /> is obtained. </t>
 
-<table anchor="computation_comp">
-  <name>Computational Overhead Comparison of ML-DSA and ML-KEM</name>
-  <thead>
+      <table anchor="computation_comp">
+          <name>Computational Overhead Comparison of ML-DSA and ML-KEM</name>
+          <thead>
     <tr>
       <th></th>
       <th align="center">KeyGen speed/SKeyGen speed</th>
@@ -254,273 +319,657 @@ Have a section that is just examples of what is new in v3 (such as new table fea
       <td align="center">7,730k/1,119k<br/>=691%</td>
       <td align="center">3,998k/1,043k<br/>=383%</td>
     </tr>
-  </tbody>
-</table>
+        </tbody>
+    </table>
 
-<t> By assuming that the copmtuational comparison shown in <xref target="computation_comp" /> reasonably presents the performance difference of ML-KEM and ML-DSA at the same platform with similar implementation techniques, for all three corresponding security levels, the following statements can be derived: </t>
+    <t> By assuming that the computational comparison shown in <xref target="computation_comp" /> reasonably presents the performance difference 
+    of ML-KEM and ML-DSA at the same platform with similar implementation techniques, for all three corresponding security levels, 
+    the following statements can be derived: </t>
 
-<ul>
-<li> The private key generation time of ML-DSA is about 4 times of that of ML-KEM. </li> 
-<li> The signature signing time of ML-DSA is about 7 times of the encapsulation speed of ML-KEM. </li>
-<li> The signature verifying time of ML-DSA is over 3 times of the decapsulation speed of ML-KEM. </li>
-</ul>
+    <ul>
+    <li> The private key generation time of ML-DSA is about 4 times of that of ML-KEM. </li> 
+    <li> The signature signing time of ML-DSA is about 7 times of the encapsulation speed of ML-KEM. </li>
+    <li> The signature verifying time of ML-DSA is over 3 times of the decapsulation speed of ML-KEM. </li>
+    </ul>
 
- <t> In the scenario of KEM based authentication, both the private keys for ML-DSA and ML-KEM will be long term keys, so the private key generation time can be ignored, as it is just one time overhead. Therefore, by combining signature signing and verifying together, and also combining encapsulation and decapsulation together, we can simply say that the computaional time of ML-DSA is about 5 times of that of ML-KEM. </t>
+    <t> In the scenario of KEM-based authentication, both the private keys for ML-DSA and ML-KEM will be long term keys, so the private key generation time 
+    can be ignored, as it is just one time overhead. Therefore, by combining signature signing and verifying together, 
+    and also combining encapsulation and decapsulation together, we can simply say that the computational time of ML-DSA is about 5 times of that of ML-KEM. </t>
 
-</section>
+    </section>
 	
-<section title="Protocl Details for KEM based Authentication" anchor="Protocol">
+    <section title="Protocol Overview for KEM-based Authentication" anchor="Overview">
+        <t> With a KEM-based authentication peers first perform an ephemeral key exchange that allows
+        them to derive session keys for protecting subsequent exchanges. This ephemeral key exchange
+        may take place entirely in the IKE_SA_INIT exchange or consist a series subsequent IKE_INTERMEDIATE
+        exchanges, in which case it would be a hybrid key exchange.
+        </t>
+
+        <t> After that peers exchange their long-term KEM certificates and then exchange random
+        values encrypted with each other's certificate, both using IKE_INTERMEDIATE exchanges.
+        In the subsequent IKE_AUTH exchange peers confirm that they both know the random values
+        send by the other side, thus confirming that they can decapsulate these values,
+        thus confirming that they do possess the private keys for their certificates.
+        </t>
+
+        <t> Mode details about the KEM-based authentication are provided in &lt;citations for PQuAKE and other papers needed&gt;.
+        </t>
+    </section>
+    
+    <section title="Protocol Details for KEM-based Authentication" anchor="Protocol">
+
+        <t> The KEM-based authentication in IKEv2 relies on the IKE_INTERMEDIATE exchange <xref target="RFC9242" />
+        that <bcp14>MUST</bcp14> be supported. In addition, the following extensions can contribute 
+        to the security and the robustness of the protocol.
+            <ul>
+                <li> IKE fragmentation <xref target="RFC7383" /> <bcp14>SHOULD</bcp14> be negotiated in case peers use UDP as a transport for IKE,
+                since KEM public key and KEM ciphertext can be of significant size.</li>
+                <li> Multiple ley exchanges <xref target="RFC9370" /> has to be utilized if a hybrid key exchange combining
+                traditional and post-quantum key exchange methods is required.</li>
+                <li> Using group Postquantum Preshared Key (PPK) <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" /> can
+                contribute to the identity hiding, thus it is <bcp14>RECOMMENDED</bcp14> to use.</li>
+                <li> The ability to authenticate the full protocol transcript <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" /> protects
+                peers against downgrade attacks and <bcp14>SHOULD</bcp14> be used.</li>
+            </ul>
+        </t>
 	
-	<t> By following <xref target="RFC9593"></xref>, two communicating peers send ech other the Notify Message Type SUPPORTED_AUTH_METHODS to negotiate which authentication method will be used to authenticate them to each other. Bascially, the authentication method can be any one registered in the "IKEv2 Authentication Method" registry under "Internet Key Exchange Version 2 (IKEv2) Parameters" <xref target="IANA-IKEv2"></xref>, maintained by IANA. To run KEM based Authentication, the draft is supposed to apply the value of &lt;TBD&gt; for "KEM based Authentication" in the "IKEv2 Authentication Method" registry (<xref target="IANA "></xref>).</t>
+<!--	<t> By following <xref target="RFC9593"></xref>, two communicating peers send ech other the Notify Message Type SUPPORTED_AUTH_METHODS 
+    to negotiate which authentication method will be used to authenticate them to each other. Bascially, the authentication method can be 
+    any one registered in the "IKEv2 Authentication Method" registry under "Internet Key Exchange Version 2 (IKEv2) Parameters" <xref target="IANA-IKEv2"></xref>, 
+    maintained by IANA. To run KEM-based Authentication, the draft is supposed to apply the value of &lt;TBD&gt; for "KEM-based Authentication" 
+    in the "IKEv2 Authentication Method" registry (<xref target="IANA "></xref>).</t> -->
 	
-<section title="Exchanges for KEM based Authentication" anchor="Exchanges">
+    <section title="Exchanges for KEM-based Authentication" anchor="Exchanges">
 
-<t> After the initiator starts the IKE_SA_INIT exchange as usual, the responder sents the notify SUPPORTED_AUTH_METHODS with value of &lt;TBD&gt; to indicate that the responder wants to run KEM based Authentication with respect to some specific KEM algorithms, which the responder supports. These KEMs will be listed in the SUPPORTED_AUTH_METHODS Notify Payload (<xref target="Payload"></xref>), ordered by the responder's preference, among other possible authentication methods. </t>
+<!--        <t> After the initiator starts the IKE_SA_INIT exchange as usual, the responder sends the notify SUPPORTED_AUTH_METHODS with value of &lt;TBD&gt; 
+        to indicate that the responder wants to run KEM-based Authentication with respect to some specific KEM algorithms, which the responder supports. 
+        These KEMs will be listed in the SUPPORTED_AUTH_METHODS Notify Payload (<xref target="Payload"></xref>), ordered by the responder's preference, 
+        among other possible authentication methods. </t>
 
-<t> After the initiator receives SUPPORTED_AUTH_METHODS from the resonder, it will select the KEM algorithm from the list of KEMs sent by the responder that has the highest preference and is supported by the initator as well. After that, the responder <bcp14>MUST</bcp14> use this KEM algorithm to authenticate itself to the initiator. </t>
+        <t> After the initiator receives SUPPORTED_AUTH_METHODS from the resonder, it will select the KEM algorithm from the list of KEMs sent by the responder 
+        that has the highest preference and is supported by the initator as well. After that, the responder <bcp14>MUST</bcp14> use this KEM algorithm 
+        to authenticate itself to the initiator. </t>
 
- <t> <xref target="exchanges_example" /> below gives an example to show how two peers use the SUPPORTED_AUTH_METHODS notification to run KEM based authentication. In the protocol, the IKE_INTERMEDIATE exchange may be used to faciliate the hybrid key exchange in the IKEv2 as specified in <xref target="RFC9370"></xref>, and to transfer PQ certifates between the responder and the intitator for completing KEM based authentication. </t>
+        <t> <xref target="exchanges_example" /> below gives an example to show how two peers use the SUPPORTED_AUTH_METHODS notification to run KEM-based 
+        authentication. In the protocol, the IKE_INTERMEDIATE exchange may be used to faciliate the hybrid key exchange in the IKEv2 
+        as specified in <xref target="RFC9370"></xref>, and to transfer PQ certifates between the responder and the intitator 
+        for completing KEM-based authentication. </t>
  
- <t> Once the responder and the inititator have negotiated to run KEM based authentication, shown as the value of 16 in the SUPPORTED_AUTH_METHODS notification, one specific KEM algorithm <bcp14>MUST</bcp14> be selected by the initiator. After that, both parties <bcp14>MUST</bcp14> encapsulate a shared secret under the public key of the other party and send out the resulting ciphertext. Then, the peer <bcp14>MUST</bcp14> decapsualte the ciphertext received to obtain the shared secret key encapsulated by the other party. Next, the AUTH data <bcp14>MUST</bcp14> be calculated according to the specification <xref target="RFC7296"></xref> via using the MAC algorithm selected. Finally, once each party successfully verifies the MAC code for the AUTH data received from the other party, the whole IKE key exchange and authentication is successful. </t>
-
+        <t> Once the responder and the inititator have negotiated to run KEM-based authentication, shown as the value of 16 in the SUPPORTED_AUTH_METHODS 
+        notification, one specific KEM algorithm <bcp14>MUST</bcp14> be selected by the initiator. After that, both parties <bcp14>MUST</bcp14> encapsulate 
+        a shared secret under the public key of the other party and send out the resulting ciphertext. Then, the peer <bcp14>MUST</bcp14> decapsualte 
+        the ciphertext received to obtain the shared secret key encapsulated by the other party. Next, the AUTH data <bcp14>MUST</bcp14> be calculated 
+        according to the specification <xref target="RFC7296"></xref> via using the MAC algorithm selected. Finally, once each party 
+        successfully verifies the MAC code for the AUTH data received from the other party, the whole IKE key exchange and authentication is successful. </t> -->
  
  <!-- RFC 9593: If these payloads are sent, they MUST be identical to the IDi/IDr payloads sent later in the IKE_AUTH request -->
 
-<figure anchor="exchanges_example" title="An Example of Running KEM based Authentication between Two Peers">
-<artwork><![CDATA[
-Initiator                                                  Responder
+        <section anchor="ike_sa_init" title="The IKE_SA_INIT Exchange">
+
+            <t> The initiator wishing to use the KEM-based authentication indicates this to the responder
+            by including a new status type notification USE_AUTHKEM (with type &lt;TBA2&gt;) into the IKE_SA_INIT request message.
+            This notification has the Protocol ID and SPI Size both set to 0 (meaning no SPI is present), and its notification data is empty.
+            To be able to use the KEM-based authentication the initiator <bcp14>MUST</bcp14> also include
+            the INTERMEDIATE_EXCHANGE_SUPPORTED notification.
+            </t>
+
+            <t> If the responder receives the IKE_SA_INIT request containing the USE_AUTHKEM
+            notification and it supports and is configured to use the KEM-based authentication,
+            then it sends this notification back in the response. The responder can optionally
+            include the Certificate Request payload (as defined in <xref target="RFC7296" />)
+            to help the initiator to select the right KEM certificate. The responder can also 
+            indicate which KEMs it is willing to use for authentication by including
+            the SUPPORTED_AUTH_METHODS notification <xref target="RFC9593" /> in the response.
+            In this case the notification <bcp14>SHOULD NOT</bcp14> contain announcements
+            with the Auth Method other than a newly defined "KEM-based Authentication" (&lt;TBA1&gt;).
+            The format of announcement is defined in <xref target="announcement" />.
+            </t>
+
+            <t> Peers can also negotiate other IKEv2 extensions during IKE_SA_INIT. Some of them are listed in <xref target="Protocol" />.
+            In particular, the figures below show the optional use of PPK <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" /> during
+            KEM-based authentication.
+            </t>
+
+            <figure anchor="fig_ike_sa_init" title="The IKE_SA_INIT Exchange">
+            <artwork><![CDATA[
+Initiator                                                   Responder
 ---------------------------------------------------------------------
-HDR(IKE_SA_INIT), SAi1(.. ADDKE*..), KEi, Ni, 
-N(INTERMEDIATE_EXCHANGE_SUPPORTED), ... --->
+HDR(IKE_SA_INIT), SAi1, KEi, Ni,    --->
+N(INTERMEDIATE_EXCHANGE_SUPPORTED), 
+[N(USE_PPK_INT),] 
+N(USE_AUTHKEM)
+                     <--- HDR(IKE_SA_INIT), SAr1, KEr, Nr, [CERTREQ,]
+                                  N(INTERMEDIATE_EXCHANGE_SUPPORTED),
+                                         [N(SUPPORTED_AUTH_METHODS),]
+                                                    [N(USE_PPK_INT),]
+                                                       N(USE_AUTHKEM)
+            ]]></artwork> 
+            </figure>
 
-                   <--- HDR(IKE_SA_INIT), SAr1(.. ADDKE*..), [CERTRQ,]
-                        KEr, Nr, N(INTERMEDIATE_EXCHANGE_SUPPORTED), ..
-                        N(SUPPORTED_AUTH_METHODS(..<TBD>..)), ..
+            <t> Peers <bcp14>MUST</bcp14> ignore the USE_AUTHKEM notification in the message if it is not accompanied 
+            by the INTERMEDIATE_EXCHANGE_SUPPORTED notification.
+            </t>
 
-                    ... (IKE_INTERMEDIATE for ADDKE) ..
+            <t> If using the KEM-based authentication is mandatory for the responder and the initiator did not propose
+            it or failed to make a valid proposal, then the responder <bcp14>MUST</bcp14> send the NO_PROPOSAL_CHOSEN notification
+            indicating that the proposed parameters are unacceptable.
+            Otherwise the responder can continue establishing IKE SA using other authentication method.
+            </t>
 
-HDR(IKE_AUTH), SK{IDi, [CERTRQ,] 
-[IDr,] SAi2, TSi, TSr, 
-N(SUPPORTED_AUTH_METHODS(..<TBD>..))} --->
+            <t> If using the KEM-based authentication is mandatory for the initiator and it failed
+            to negotiate it with the responder, then the initiator <bcp14>MUST</bcp14> cancel
+            establishing IKE SA. Otherwise the initiator can continue using other authentication method.
+            </t>
 
-                    ... (IKE_INTERMEDIATE for [CERT,ct]) ..
-                   <--- HDR(IKE_AUTH), SK{IDr, AUTH, SAr2, TSi, TSr}, ..
-]]></artwork> 
-</figure>
+            <t> After the IKE_SA_INIT exchange completes, peers calculate the session keys as defined in Section 2.14
+            of <xref target="RFC7296" /> and use these keys to protect the next exchange.
+            </t>
+        </section>
 
-<t> If the resulting SUPPORTED_AUTH_METHODS notification with list of autehnticiton methods is too long such that IP fragmentation <xref target="RFC7383"></xref> of the IKE_SA_INIT response may happen, the responder <bcp14>MAY</bcp14> choose to send empty SUPPORTED_AUTH_METHODS notification in the IKE_SA_INIT exchange response. Then, the responder and the intiatior can send ech other the SUPPORTED_AUTH_METHODS notification with list of authentictatin methods they support by using the IKE_INTERMEDIATE exchange, as desribed in Section 3.1 of <xref target="RFC9593"></xref>. </t>
+        <section anchor="ike_intermediate" title="The IKE_INTERMEDIATE Exchanges">
+            <t> Once the KEM-based authentication is negotiated in IKE_SA_INIT, a series of the
+            IKE_INTERMEDIATE exchanges takes place. These exchanges can be classified as those
+            for the purpose of the KEM-based authentication and those for other purposes.
+            The exchanges for the KEM base authentication <bcp14>MUST</bcp14> follow all
+            other IKE_INTERMEDIATE exchanges, so that they take place right before the IKE_AUTH exchange.
+            </t>
 
-	<t> [EDNOTE: More examples may be provided later.] </t>
+            <section anchor="ike_intermediate_no_pqake" title="The IKE_INTERMEDIATE Exchanges for Other Purposes">
+
+                <t> First, if multiple key exchanges were negotiated, then one or more IKE_INTERMEDIATE exchanges 
+                are performed, right after the IKE_SA_INIT exchange, as defined in <xref target="RFC9370" />.
+                </t>
+
+                <figure anchor="fig_intermediate_addke" title="Additional Key Exchange(s)">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {KEi(n)}   --->
+                            <---   HDR(IKE_INTERMEDIATE), SK {KEr(n)}
+                ]]></artwork> 
+                </figure>
+
+                <t> Each of these exchanges updates the session keys as defined in Section 2.2.2 of <xref target="RFC9370" />.
+                </t>
+
+                <t> If the use of PPKs as defined in <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" /> is negotiated,
+                then the IKE_INTERMEDIATE exchange negotiating the PPK to use is performed then as defined 
+                in Section 3.1 of <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" />.
+                </t>
+
+                <figure anchor="fig_intermediate_ppk" title="PPK Negotiation">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {PPK_IDENTITY_KEY)}   --->
+                   <---   HDR(IKE_INTERMEDIATE), SK {N(PPK_IDENTITY)}
+                ]]></artwork> 
+                </figure>
+
+                <t> After this exchange the session keys are updated as defined in Section 3.1.1 of 
+                <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" />.
+                </t>
+
+                <t> If both additional key exchange(s) and the use of PPKs as defined in <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" /> are negotiated,
+                then the last additional key exchange <bcp14>MAY</bcp14> alternatively be combined with negotiation the PPK 
+                in a single IKE_INTERMEDIATE exchange as shown in <xref target="fig_intermediate_ppk" />. Note, that in many cases only one
+                additional key exchange will be negotiated (as a part of PQ/T hybrid key exchange), thus 
+                in this case the last additional key exchange will also be the only one.
+                </t>
+
+                <figure anchor="fig_intermediate_addke_ppk" title="Last Additional Key Exchange Combined with PPK Negotiation">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {KEi(m), 
+(PPK_IDENTITY_KEY)}   --->
+                            <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
+                                                     N(PPK_IDENTITY)}
+                ]]></artwork> 
+                </figure>
+
+                <t> If this combined IKE_INTERMEDIATE exchange takes place, then upon its completion session 
+                keys are updated twice - fist as defined in Section 2.2.2 of <xref target="RFC9370" /> and
+                then, provided the peers negotiate the PPK to use, as defined in Section 3.1.1 of 
+                <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" />.
+                </t>
+
+                <t> Note, that while <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" /> generally requires that the PPK negotiation
+                is performed in the last IKE_INTERMEDIATE exchange right before the IKE_AUTH exchange, it also allows
+                this requirement to be overridden by other specification. This document specifically overrides
+                this requirement by allowing the IKE_INTERMEDIATE exchanges concerned with the KEM-based authentication
+                to take place between the negotiation of PPK and the IKE_AUTH exchange.
+                </t>
+            </section>
+
+            <section anchor="ike_intermediate_pqake" title="The IKE_INTERMEDIATE Exchanges for the KEM Authentication">
+
+                <t> The next IKE_INTERMEDIATE exchanges perform the necessary actions for the KEM-based authentication.
+                </t>
+
+                <t> First, the peers exchange their KEM certificates. The initiator can optionally
+                include the Certificate Request payload to help the responder to select the right KEM certificate. 
+                The initiator can also indicate which KEMs it is willing to use for authentication by including
+                the SUPPORTED_AUTH_METHODS notification <xref target="RFC9593" /> in the response.
+                In this case the notification <bcp14>SHOULD NOT</bcp14> contain announcements
+                with the Auth Method other than the  "KEM Authentication" (&lt;TBA1&gt;).
+                The format of announcement is defined in <xref target="announcement" />.
+                </t>
+
+                <t> The initiator's certificate and the responder's one <bcp14>MAY</bcp14> contain public keys 
+                for different KEMs, provided that peers support these KEMs, - there is no requirement that they are for the same KEM.
+                </t>
+
+                <t> Since KEM certificates can have significant size, peers <bcp14>MAY</bcp14> use hash-and-URL certificate lookup  
+                (by using "Hash and URL of X.509 certificate" or "Hash and URL of X.509 bundle" certificate encoding).
+                In this case the CERT payload would contain the URL and the hash of the certificate(s) as defined 
+                in Section 3.6 of <xref target="RFC7296" />. The advantage of this approach is that a host can avoid
+                downloading the peer's certificates if it cached this certificate from a previous connection. The hash of a certificate
+                provided in the Certificate payload is used to find the certificate in a cache in this case.
+                </t>
+
+                <t> Besides the KEM certificate, additional intermediate signing certificates can be sent.
+                The KEM certificate <bcp14>MUST</bcp14> be the first and the only KEM certificate in the message.
+                </t>
+
+                <figure anchor="fig_intermediate_cert" title="Exchange of KEM Certificates">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {[CERTREQ,]
+[N(SUPPORTED_AUTH_METHODS),] CERT}   --->
+                              <---   HDR(IKE_INTERMEDIATE), SK {CERT}
+                ]]></artwork> 
+                </figure>
+
+                <t> This exchange does not update the current session keys.
+                </t>
+
+                <t> Once peers exchange their KEM certificates they verify each other's certificate
+                to make sure that it is valid, properly signed by a certificate chain leaded to a trusted CA, and 
+                that it is acceptable for peer authentication based on the local policy. The exact verification steps 
+                are out of scope of this document, but generally should follow those defined in <xref target="RFC5280" />.
+                </t>
+
+                <t> The next IKE_INTERMEDIATE exchange is used to exchange the random values
+                encrypted using the KEM certificates that were obtained by the peers in the previous exchange.
+                </t>
+
+                <t> The peers send each other a new status type notification AUTHKEM_DATA (with type &lt;TBA3&gt;).
+                The Protocol ID and SPI Size fields are set to 0 (meaning no SPI is present).
+                The Notification Data is a concatenation of two values CT and SSCONF prepared by each peer, where
+                CT_i and SSCONF_i are prepared by the initiator, while CT_r and SSCONF_r are prepared by the responder.
+                These values are computed as follows ("x" is either "i" or "r"):
+
+                <ul>
+                    <li>CT_x is a ciphertext obtained by encryption a random value SS_x with a public key from the peer's certificate.</li>
+                    <li>SSCONF_x is computed as prf(SK_px, SS_x), where prf is the negotiated PRF for this SA.</li>
+                </ul>
+                </t>
+
+                <figure anchor="fig_intermediate_kem" title="Exchange of Encrypted Random Values">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}   --->
+                   <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}
+                ]]></artwork> 
+                </figure>
+
+                <t> Upon receiving the message each side performs the following steps:
+
+                <ol>
+                    <li>Splits the content of the AUTHKEM_DATA notification into CT and SSCONF parts based on the known sizes of 
+                    the ciphertext of the used KEM certificate and the output size of the negotiated PRF.</li>
+                    <li>Decrypts CT using the private key corresponding to the certificate sent in the previous exchange and gets peer's SS value.</li>
+                    <li>Computes peer's SSCONF value and checks whether it matches the received SSCONF value.</li>
+                </ol>
+
+                If the computed and the received SSCONF values match, then the host can be sure that it
+                received exactly the same SS value as was sent by its peer. To complete authentication 
+                the host needs to prove this fact to its peer, and to make sure that the peer 
+                also received exactly the same SS value as it sent.
+                </t>
+
+                <t> Upon completion of this exchange the session keys are updated. A new value of SKEYSEED is computed as:
+
+                <figure>
+                <artwork><![CDATA[
+SKEYSEED' = prf(SK_d, SS_i | SS_r)
+                ]]></artwork> 
+                </figure>
+
+                Then all the session keys (SK_d, SK_ai, SK_ar, SK_ei, SK_er, SK_pi, and SK_pr)
+                are computed as defined in Section 2.14 of <xref target="RFC7296" />. These session
+                keys are then used for protecting all subsequent exchanges starting from the IKE_AUTH exchange.
+                </t>
+
+            </section>
+        </section>
+
+        <section anchor="ike_auth" title="The IKE_AUTH Exchange">
+            <t> The IKE_AUTH exchange immediately follows the IKE_INTERMEDIATE exchange
+            where peers sent each other encrypted SS values. The IKE_AUTH exchange is basically 
+            unchanged from that defined in <xref target="RFC7296" />.
+            The Auth Method field in the AUTH payloads <bcp14>MUST</bcp14> be "KEM Authentication".
+            The format of the AUTH payload is computed as defined in <xref target="kem-auth-method" />.
+
+            <figure anchor="fig_ike_auth" title="The IKE_AUTH Exchange">
+            <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_AUTH), SK{IDi, [IDr,] 
+AUTH, SAi2, TSi, TSr}   --->
+                                        <---   HDR(IKE_AUTH), SK{IDr,
+                                                AUTH, SAr2, TSi, TSr}
+            ]]></artwork> 
+            </figure>
+
+            </t>
+
+            <section anchor="ike_auth_id" title="Identities in the IKE_AUTH Exchange">
+                <t> With KEM based authentication peers have to exchange their KEM certificates
+                before actual authentication of each other. Certificates usually contain
+                some identity information, that the CA asserts the included public key is bound to.
+                This makes peers aware of each other's identity before the IKE_AUTH exchange starts.
+                </t>
+
+                <t> However, IKEv2 doesn't rely on the identities from certificates when performing authentication.
+                Instead, Identification payloads (IDi and IDr) are mandatory in the IKE_AUTH exchange
+                and it is they that are included into the AUTH payload calculation.
+                The content of the IDi and IDr payload may differ from the identification
+                information in the corresponding certificate, as stated in Section 3.5 of <xref target="RFC7296" />.
+                </t>
+            </section>
+
+        </section>
+
+<!--    <t> If the resulting SUPPORTED_AUTH_METHODS notification with list of autehnticiton methods is too long such 
+    that IP fragmentation <xref target="RFC7383"></xref> of the IKE_SA_INIT response may happen, the responder <bcp14>MAY</bcp14> choose 
+    to send empty SUPPORTED_AUTH_METHODS notification in the IKE_SA_INIT exchange response. Then, the responder and the intiatior can send 
+    each other the SUPPORTED_AUTH_METHODS notification with list of authentictatin methods they support by using the IKE_INTERMEDIATE exchange, 
+    as desribed in Section 3.1 of <xref target="RFC9593"></xref>. </t>
+
+	<t> [EDNOTE: More examples may be provided later.] </t> -->
 	
 	</section>
 
-    <section title="KEM based Authentication with Preshared Public Key" anchor="PPK">
+        <section anchor="alternatives" title="Alternative Sequences of Exchanges">
+            <t> This section is to be removed eventually. It provides ideas for alternative design of the protocol.
+            </t>
 
-<t> In <xref target="Exchanges"></xref>, the protocol may need to run one additional round as KEM based authentication has to first send out one's KEM public key and the associated certificate, so that the other party can return back an encapsualted secret as a challenge, before finally releasing the MAC for the AUTH data. This is naturally not as efficient as signature authentication, which can be sent out in one message consisting of message being authenticated, the digital signarure, and also the corresponing public key certificate used to verify the singature.   </t>
+            <t> The presented sequence of exchanges requires two additional exchanges (namely IKE_INTERMEDIATE exchanges)
+            for KEM-based authentication compared to signature-based authentication. It is possible to 
+            only have one additional IKE_INTERMEDIATE exchange, but this either results in some degradation
+            of security properties or leads to additional protocol complexity. Note, that the amount
+            of data exchanged over the wire would not changed, the different items would just
+            be combined in one message. This, it turn, would increase size of these messages that might
+            not be desirable from reliable delivery point of view.
+            </t>
 
-<t> However, the situation will be changed when both parties have already acquied each other's public key (and the associated certificate) before running KEM based authentication. Such a public key may be pre-installed, cached, or provisoned via out-bound ways. For TLS authentication, the situation has been specified in <xref target="I-D.wiggers-tls-authkem-psk"></xref>. Tnhis KEM based authentication with preshared public key is expected to be useful in scenarios where one or both parties have conctrained capabilities, e.g, IoT devices. </t>
+            <section anchor="alternative_1" title="Alternative 1: Send Certificates Encrypted Only with the IKE_SA_INIT Keys">
+                <t> It is possible to exchange certificates before all additional key exchanges (and optional negotiation of the PPK)
+                are completed. In this case the certificates would only be protected with session keys computed after the IKE_SA_INIT
+                exchange (in case of hybrid key exchange that would be traditional key exchange).
+                </t>
 
-<t> [EDNOTE: An example may be provided later.] </t>
+                <t> In this case, the exchange shown in <xref target="fig_intermediate_cert" /> is not needed,
+                since the certificates would be exchanged in the previous exchange. For example, the exchange 
+                shown in <xref target="fig_intermediate_addke_ppk" /> would look like:
+
+                <figure anchor="fig_intermediate_addke_ppk_alt1" title="Last Additional Key Exchange Combined with PPK Negotiation 
+                and Exchange of Certificates">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {KEi(m), 
+(PPK_IDENTITY_KEY), [CERTREQ,]
+[N(SUPPORTED_AUTH_METHODS),] CERT}   --->
+                            <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
+                                                (PPK_IDENTITY), CERT}
+                ]]></artwork> 
+                </figure>
+
+                This design would decrease the level of identity hiding, since the session keys used to protect
+                the certificates in case of hybrid key exchange could be cracked by an attacker using quantum computer.
+                </t>
+
+                <t> On the other hand, KEM-based authentication is generally more succeptible to 
+                learning the identities of the peers by an attacker, because the peers have to exchange
+                their certificates before authenticating each other, which makes it possible
+                for the attacker in the middle to learn them. 
+                </t>
+            </section>
+
+            <section anchor="alternative_2" title="Alternative 2: Change the Order of Certificates and Use Double Encryption">
+                <t> It is possible to get almost the same protection as in the original design but still 
+                eliminating one IKE_INTERMEDIATE exchange by complicating the protocol.
+                </t>
+
+                <t> In this case the exchange shown in <xref target="fig_intermediate_cert" /> is also not needed.
+                The responder sends its certificate first in the previous IKE_INTERMEDIATE exchange.
+                Note, that this exchange contains the last additional key exchange and optionally the PPK negotiation,
+                thus its messages are not yet protected with the session keys that would result in this exchange - 
+                the new key are calculated only once the exchange completes. However, the responder can 
+                calculate the updated keys before it sends the response message. The idea is that 
+                the responder calculates new session keys and use these "future" keys (for the next exchange) 
+                to protect its certificate in the encrypted payload, that itself is protected with the "current" session keys.
+                </t>
+
+                <figure anchor="fig_intermediate_addke_ppk_alt2" title="Last Additional Key Exchange Combined with PPK Negotiation 
+                and Responder's Certificate">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {KEi(m), 
+(PPK_IDENTITY_KEY), [CERTREQ,]
+[N(SUPPORTED_AUTH_METHODS),]}   --->
+                            <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
+                              (PPK_IDENTITY), N(ENCYPTED_CERT)(cert)}
+                ]]></artwork> 
+                </figure>
+
+                <t> Then the initiator sends its certificate in the exchange shown in <xref target="fig_intermediate_kem" />.
+                </t>
+
+                <figure anchor="fig_intermediate_kem_alt2" title="Initiator's Certificate and Exchange of Encrypted Random Values">
+                <artwork><![CDATA[
+Initiator                                                   Responder
+---------------------------------------------------------------------
+HDR(IKE_INTERMEDIATE), SK {CERT, N(AUTHKEM_DATA)}   --->
+                   <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}
+                ]]></artwork> 
+                </figure>
+
+                <t> This sequence of exchanges allows certificates to be protected at the same level as in the original
+                sequence of exchanges (in particular, both certificates can be protected with group PPK). 
+                The drawback is the added complexity for implementations, since it could break the 
+                traditional state transitions logic of IKE.
+                </t>
+
+            </section>
+
+        </section>
+
+
+<!--    <section title="KEM-based Authentication with Preshared Public Key" anchor="PPK">
+
+        <t> In <xref target="Exchanges"></xref>, the protocol may need to run one additional round as KEM-based authentication has to first send out 
+        one's KEM public key and the associated certificate, so that the other party can return back an encapsualted secret as a challenge, 
+        before finally releasing the MAC for the AUTH data. This is naturally not as efficient as signature authentication, 
+        which can be sent out in one message consisting of message being authenticated, the digital signarure, and also the corresponing 
+        public key certificate used to verify the singature.</t>
+
+        <t> However, the situation will be changed when both parties have already acquied each other's public key (and the associated certificate) 
+        before running KEM-based authentication. Such a public key may be pre-installed, cached, or provisoned via out-bound ways. 
+        For TLS authentication, the situation has been specified in <xref target="I-D.wiggers-tls-authkem-psk"></xref>. 
+        This KEM-based authentication with preshared public key is expected to be useful in scenarios where one or 
+        both parties have constrained capabilities, e.g, IoT devices. </t>
+
+        <t> [EDNOTE: An example may be provided later.] </t>
 	
      </section>
+-->
 
+    <section title="Data Formats" anchor="formats">
+        <section title="Authentication Payload for KEM Authentication Method" anchor="kem-auth-method">
+            <t> The format of the Authentication payload is defined in Section 3.8 of <xref target="RFC7296" />.
+            In case of KEM-based authentication the Auth Method is set to "KEM Authentication" (&lt;TBA1&gt;).
+            The Authentication Data is computed as:
 
-	
-    <section title="Payload Format for KEM based Authentication" anchor="Payload">
- 
-	 <t> For easy reference, the SUPPORTED_AUTH_METHODS Notify payload format is shown in the following, as specified in Section 3.2 of <xref target="RFC9593"></xref>. Correspondigly, here, Protocol ID field <bcp14>MUST</bcp14> be set to 0, the SPI Size MUS be set to 0 (meaning there is no SPI field), and the Notify Message Type <bcp14>MUST</bcp14> set to 16443. </t>
-   
-    <figure anchor="supported_auth_method_notify_format" title="SUPPORTED_AUTH_METHODS Notify Payload Format">
-	<artwork><![CDATA[
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   | Next Payload  |C|  RESERVED   |         Payload Length        |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Protocol ID  |   SPI Size    |      Notify Message Type      |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                                                               |
-   ~          List of Supported Auth Methods Announcements         ~
-   |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	]]></artwork>
-    </figure>
-	
-	<t> Payload Format for KEM based Authentication Announcement is defined in <xref target="supported_auth_method_announcement" />, which is treated as part of the Supported Auth Methods Announcements shown in <xref target="supported_auth_method_notify_format" />. Namely, for this part, a number (N) of KEM based authentication methods are listed, as desribed below. </t>
-	
-	<ul>
-    <li> Length: Length of the whole blob of one announcement in octets; must be greater than 5. </li>
-	<li> Auth Method: Announced authentication method, which is supposed to &lt;TBD&gt;, standing for "KEM based authentication" for the IKEv2.</li>
-	<li> Cert Link: Links this announcement with a particular CA, which issued the KEM certificate for the KEM algorithm identified in AlgorithmIdentifiers below; see Section 3.2.2 of <xref target="RFC9593"></xref> for detail. </li>
-    <li> Alg Len 1: Length of the KEM algorithm idenfied in AlgorithmIdentifiers below, in octets. </li>
-	<li> Alg Len 2: Length of the keyed MAC algorithm idenfied in AlgorithmIdentifiers below, in octets. </li>
-	<li> AlgorithmIdentifiers: The concatenation of two variable-length ASN.1 objects that are encoded using Distinguished Encoding Rules (DER) <xref target="X.690"></xref> and identify one specific KEM aglorithm and one keyed MAC algorithm. Those two ASN.1 objects are combined here temporary for this instance of KEM-based authenticaion.</li>
-    </ul>
-	
-	<t> For example, if the concatenation of ML-KEM-768 and SHAKE128 (denoted as ML-KEM-768+SHAKE128 for simplicity), this means that ML-KEM-768 will be used to encapsulate and decapsulate the shared secret ss in KEM-based authenticaion, while SHAKE128 with key ss will be used to calculate the IKE authentication code for the IKE data to be authenticated, according to <xref target="RFC7296"></xref>. </t>
+            <figure>
+                <artwork align="left"><![CDATA[
+For the initiator:
 
-<figure anchor="supported_auth_method_announcement" title="Payload Format for KEM based Authentication Announcement">
-<artwork><![CDATA[
+  AUTH = prf( prf(SK_pi, "Key Pad for IKEv2"),
+                   <InitiatorSignedOctets>)
+
+For the responder:
+
+  AUTH = prf( prf(SK_pr, "Key Pad for IKEv2"),
+                   <ResponderSignedOctets>)
+            ]]></artwork>
+            </figure>
+
+            The content of the InitiatorSignedOctets and the ResponderSignedOctets is defined 
+            in Section 3.3.2 of <xref target="RFC9242" />. If full transcript authentication
+            is employed as specified in <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" />,
+            then the InitiatorSignedOctets and the ResponderSignedOctets are additionally
+            modified as defined in <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" />.
+            </t>
+        </section>
+
+        <section title="Authentication Announcement for KEM Authentication" anchor="announcement">
+            <t> The format of the announcement for the "KEM Authentication" is the same as for 
+            "Digital Signature" as shown in Section 3.2.3 of <xref target="RFC9593" />. For convenience 
+            the format is also shown below.
+
+                <figure align="center" anchor="authmethod3" title="Supported Authentication Method">
+                    <artwork align="left"><![CDATA[
+                     1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Length (>5)  |  Auth Method  |  Cert Link 1  | Alg 1 Len 1   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Alg 1 Len 2  |                                               |
-+-+-+-+-+-+-+-+-+                                               +
-~                      AlgorithmIdentifiers 1                   ~
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Cert Link 2   |  Alg 2 Len 1  |  Alg 2 Len 1  |               | 
+|  Length (>3)  |  Auth Method  |   Cert Link   |               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +
-~                      AlgorithmIdentifiers 2                   ~
+|                                                               |
+~                AlgorithmIdentifier ASN.1 object               ~
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-~                      ...                                      ~
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Cert Link N   |  Alg N Len 1  |  Alg N Len 2  |               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               | 
-~                      AlgorithmIdentifiers N                   ~
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-]]></artwork> 
-</figure>
-	
-	<!-- By now, this document is open to use two formats for KEM_based_Auth_IOD, namely Fixed and Flexible. as defined below. </t>
-	
-    <ul>
-    <li> Fixed KEM_based_Auth_OID: This is a variable-length ASN.1 object that is encoded using Distinguished Encoding Rules (DER) <xref target="X.690"></xref> and identifies a fixed combination of one specific KEM aglorithm and one keyed MAC algorithm (see Section 4.1.1.2 of <xref target="RFC5280"></xref>. ) For example, ML-KEM-768_SHA256, which means that ML-KEM-768 will be used to encapsulate and decapsulate the shared secret ss in KEM-based authenticaion, while SHA256 with key ss will be used to calculate the IKE authentication code for the IKE data to be authenticated, according to <xref target="RFC7296"></xref>. </li> 
-    <li> Flexible KEM_based_Auth_OID: This is the concatenation of two variable-length ASN.1 objects that identify one specific KEM aglorithm and one keyed MAC algorithm, which are combined here temporary for this instance of KEM-based authenticaion. For example, ML-KEM-768+SHAKE128, which means that ML-KEM-768 will be used to encapsulate and decapsulate the shared secret ss in KEM-based authenticaion, while SHAKE128 with key ss will be used to calculate the IKE authentication code for the IKE data to be authenticated.</li>
-	</ul>
-	
-	<t> [EDNOTE: Later, it may need to decide how many of Fixed KEM_based_Auth_OIDs are required. For each such a combination, a unique OID SHALL be applied. Comments and suggestions are welcome] </t>
-	-->
+                   ]]></artwork>
+                </figure>
+            
+                <list style="symbols">
+                    <t>Length - Length of the announcement in octets, must be greater than 3.</t>
+                    <t>Auth Method - Announced authentication method, in this case it is "KEM Authentication".</t>
+                    <t>Cert Link - Links this announcement with particular CA; see Section 3.2.2 of <xref target="RFC9593" /> for details.</t>
+                    <t>AlgorithmIdentifier ASN.1 object - the AlgorithmIdentifier of PKIX (see Section 4.1.1.2 of <xref target="RFC5280" />), 
+                    encoded using distinguished encoding rules (DER) <xref target="X.690" />. 
+                    </t>
+                </list>
 
+                For "KEM Authentication" announcement the AlgorithmIdentifier <bcp14>MUST</bcp14> contain 
+                identifier of a KEM algorithm (and not, for example, of a signature algorithm). Identifiers
+                for KEM algorithms are specified in the corresponding documents for these algorithms
+                (e.g., for ML-KEM see <xref target="I-D.ietf-lamps-kyber-certificates" />).
+            </t>
+        </section>
 
-<t> [EDNOTE: Moreover, the ss obtained from KEM based Authentication can be twisted with the some key derived from the IKEv2 KE part, as does in <xref target="I-D.celi-wiggers-tls-authkem"></xref>. Comments and suggestions are welcome] </t>
+    </section>
 
-<t> Alternatively, fixed algorithm combination for KEM based authentication, say ML-KEM-768_SHA128, <bcp14>MAY</bcp14> be defined by adding a new value in the "IKEv2 Authenticaion Method" registry <xref target="IANA-IKEv2"></xref>. Similar to the above definition for AlgorithmIdentifiers, ML-KEM-768_SHA128 means that ML-KEM-768 will be used to encapsulate and decapsulate the shared secret ss in KEM-based authenticaion, while SHA128 with key ss will be used to calculate the IKE authentication code for the IKE data to be authenticated, according to <xref target="RFC7296"></xref>. Compared to AlgorithmIdentifiers, such a fixed algorithm combination can easily be recognized and used, but it sits on the same level as KEM based authentication, the general scheme specified the above. Anyway, this happens for general "Digital Signature" (14) and a specific digital scheme, e.g., "ECDSA with SHA-256 on the P-256 curve" (16) <xref target="IANA-IKEv2"></xref>. Once this happens, such KEM based Authentication Announcements with different Auth Method <bcp14>MUST</bcp14> be merged to the Authentication Announcements described in <xref target="supported_auth_method_announcement"/>. </t>
+    </section>
 
-<t> [EDNOTE: Comments and suggestions are welcome for fixed algorithm combinations. ] </t>
-	 
+    <section title="Interaction with Other IKEv2 Extensions" anchor="interaction">
+        <t> To be added.
+        </t>
+    </section>
 
-	<t> [EDNOTE: More examples may be provided later.] </t>
-    
-	</section>
-	
-</section>
+    <section title="Security Considerations" anchor="Security">
 
-<section title="Security Considerations" anchor="Security">
-
-<t> To be done later.  1) It may be not a good idea by directly showing the decapsulated secret ss as the means of authentication here. The reason is that the entity being authenticated may employ the owner of the KEM public/private key pair as an oracle to decapsualte the secret via running a different session, normally within a separate protocol or scenario where directly showing such a secret is harmless. 2) It may be preferable or <bcp14>MUST</bcp14> limit the use of such a KEM certificate only for KEM authentication. </t>
+        <t> To be done later.  1) It may be not a good idea by directly showing the decapsulated secret ss as the means of authentication here. 
+        The reason is that the entity being authenticated may employ the owner of the KEM public/private key pair as an oracle to decapsualte 
+        the secret via running a different session, normally within a separate protocol or scenario where directly showing such a secret is harmless. 
+        2) It may be preferable or <bcp14>MUST</bcp14> limit the use of such a KEM certificate only for KEM authentication. </t>
 
 </section>
 	
 
-<section title="IANA Considerations" anchor="IANA">
+    <section title="IANA Considerations" anchor="IANA">
 
-     <t> This document is supposed to define a new type in the "IKEv2 Authentication Method" registry under "Internet Key Exchange Version 2 (IKEv2) Parameters" <xref target="IANA-IKEv2"></xref>, maintained by IANA:
-</t>
-	 
-<table>
-  <thead>
-    <tr>
-      <th align="center">Value</th>
-      <th align="center">IKEv2 Authentication Method</th>
-      <th align="center">Reference</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">TBD</td>
-      <td align="center">KEM based Authentication</td>
-      <td align="center">This document</td>
-    </tr>
-  </tbody>
-</table>
-	 
-</section>
+        <t> IANA is requested to make the following changes in the IKEv2 registries 
+         "Internet Key Exchange Version 2 (IKEv2) Parameters" <xref target="IANA-IKEv2"></xref>:
+        </t>
 
+        <ol>
+            <li> <t>Define a new authentication method "KEM Authentication" in the "IKEv2 Authentication Method" registry:</t>
+    	 
+            <table>
+              <thead>
+                <tr>
+                  <th align="center">Value</th>
+                  <th align="center">IKEv2 Authentication Method</th>
+<!--                  <th align="center">Reference</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td align="center">TBA1</td>
+                  <td align="center">KEM Authentication</td>
+<!--                   <td align="center">This document</td> -->
+                </tr>
+              </tbody>
+            </table>
+            </li>
 
-<section title="Acknowledgments" anchor="acknowledgements">
+            <li> <t>Define two new status type notifications in the "IKEv2 Notify Message Status Types" registry:</t>
 
-<t>
-To be added later.
-</t>
-</section>
+            <table>
+              <thead>
+                <tr>
+                  <th align="center">Value</th>
+                  <th align="center">Notify Message Status Type</th>
+<!--                  <th align="center">Reference</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td align="center">TBA2</td>
+                  <td align="center">USE_AUTHKEM</td>
+<!--                  <td align="center">This document</td> -->
+                </tr>
+                <tr>
+                  <td align="center">TBA3</td>
+                  <td align="center">AUTHKEM_DATA</td>
+<!--                  <td align="center">This document</td> -->
+                </tr>
+              </tbody>
+            </table>
+            </li>
+        </ol>
+
+    </section>
 
 </middle>
 
 <back>
   
-<displayreference target="I-D.ietf-ipsecme-ikev2-pqc-auth" to="I-D.RSF25"/>
-<displayreference target="I-D.sfluhrer-ipsecme-ikev2-mldsa" to="I-D.Flu25"/>
-<displayreference target="I-D.hu-ipsecme-pqt-hybrid-auth" to="I-D.HMW"/>
-<displayreference target="I-D.celi-wiggers-tls-authkem" to="I-D.WCS"/>
-<displayreference target="I-D.wiggers-tls-authkem-psk" to="I-D.WCSSS"/>
-<displayreference target="I-D.ietf-pquip-hybrid-signature-spectrums" to="I-D.BHCD"/>
-<displayreference target="I-D.ietf-ipsecme-ikev2-mlkem" to="I-D.KR24"/>
+<!--  
+    <displayreference target="I-D.ietf-ipsecme-ikev2-pqc-auth" to="I-D.RSF25"/>
+    <displayreference target="I-D.sfluhrer-ipsecme-ikev2-mldsa" to="I-D.Flu25"/>
+    <displayreference target="I-D.hu-ipsecme-pqt-hybrid-auth" to="I-D.HMW"/>
+    <displayreference target="I-D.celi-wiggers-tls-authkem" to="I-D.WCS"/>
+    <displayreference target="I-D.wiggers-tls-authkem-psk" to="I-D.WCSSS"/>
+    <displayreference target="I-D.ietf-pquip-hybrid-signature-spectrums" to="I-D.BHCD"/>
+    <displayreference target="I-D.ietf-ipsecme-ikev2-mlkem" to="I-D.KR24"/>
+-->
 
-
-<references title="Normative References">
+    <references title="Normative References">
 
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml"/>
-		<!-- <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/> -->
 		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7296.xml"/>
-		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7383.xml"/>
-		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7427.xml"/>
 		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml"/>
 		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9242.xml"/>
-		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9370.xml"/>
-		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9593.xml"/>
-		
-		<reference anchor="FIPS203"  target="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf">
-          <front>
-            <title>FIPS 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard </title>
-            <author fullname="National Institute of Standards and Technology" initials="" surname="National Institute of Standards and Technology" />
-            <date month="August" year="2024"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Federal Information Processing Standards Publication" value=""/>
-        </reference>
 
-	<reference anchor="FIPS204"  target="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf">
-          <front>
-            <title>FIPS 204: Module-Lattice-Based Digital Signature Standard </title>
-            <author fullname="National Institute of Standards and Technology" initials="" surname="National Institute of Standards and Technology" />
-            <date month="August" year="2024"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Federal Information Processing Standards Publication" value=""/>
-		</reference>
-		
-		<reference anchor="FIPS205"  target="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf">
-          <front>
-            <title>FIPS 205: Stateless Hash-Based Digital Signature Standard </title>
-            <author fullname="National Institute of Standards and Technology" initials="" surname="National Institute of Standards and Technology" />
-            <date month="August" year="2024"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Federal Information Processing Standards Publication" value=""/>
-		</reference>
-		
-		<reference anchor="X.690"  target="">
-          <front>
-            <title>Information Technology - ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER) </title>
-            <author fullname="ITU-T " initials="" surname="ITU-T" />
-            <date month="February" year="2021"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="ISO/IEC 8825-1:2021 (E),  " value="ITU-T Recommendation X.690"/>
-        </reference>
-
-<reference anchor="IANA-IKEv2" target="https://www.iana.org/assignments/ikev2-parameters/ikev2-parameters.xhtml">
+        <reference anchor="IANA-IKEv2" target="https://www.iana.org/assignments/ikev2-parameters/ikev2-parameters.xhtml">
           <front>
             <title> Internet Key Exchange Version 2 (IKEv2) Parameters </title>
             <author fullname=" " initials=" " surname=" "/>
@@ -534,9 +983,9 @@ To be added later.
 		
         <!-- The recommended and simplest way to include a well known reference -->
  
-</references>
+    </references>
 
-<references>
+    <references>
         <name>Informative References</name>
 		
 		<reference anchor="HAZ24" target="https://tches.iacr.org/index.php/TCHES/article/view/11419">
@@ -572,145 +1021,84 @@ To be added later.
           <seriesInfo name="In the Proceedings of ACM CCS 2020, pages 1461–1480. ACM Press." value="doi:10.1145/3372297.3423350."/>
         </reference>
 				
+        <reference anchor="FIPS203"  target="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.203.pdf">
+          <front>
+            <title>FIPS 203: Module-Lattice-Based Key-Encapsulation Mechanism Standard </title>
+            <author fullname="National Institute of Standards and Technology" initials="" surname="National Institute of Standards and Technology" />
+            <date month="August" year="2024"/>
+            <abstract>
+              <t> .. </t>
+            </abstract>
+          </front>
+          <seriesInfo name="Federal Information Processing Standards Publication" value=""/>
+        </reference>
+
+    <reference anchor="FIPS204"  target="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf">
+          <front>
+            <title>FIPS 204: Module-Lattice-Based Digital Signature Standard </title>
+            <author fullname="National Institute of Standards and Technology" initials="" surname="National Institute of Standards and Technology" />
+            <date month="August" year="2024"/>
+            <abstract>
+              <t> .. </t>
+            </abstract>
+          </front>
+          <seriesInfo name="Federal Information Processing Standards Publication" value=""/>
+        </reference>
+
+        <reference anchor="FIPS205"  target="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.204.pdf">
+          <front>
+            <title>FIPS 205: Stateless Hash-Based Digital Signature Standard </title>
+            <author fullname="National Institute of Standards and Technology" initials="" surname="National Institute of Standards and Technology" />
+            <date month="August" year="2024"/>
+            <abstract>
+              <t> .. </t>
+            </abstract>
+          </front>
+          <seriesInfo name="Federal Information Processing Standards Publication" value=""/>
+        </reference>
+
+<!--        <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7427.xml"/> -->
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5280.xml"/>
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9370.xml"/>
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7383.xml"/>
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9593.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-pqc-auth.xml"/>
-		
-<!--
-		<reference anchor="I-D.RSF25"  target="https://datatracker.ietf.org/doc/draft-reddy-ipsecme-ikev2-pqc-auth/">
-          <front>
-            <title> Signature Authentication in the Internet Key Exchange Version 2 (IKEv2) using PQC  </title>
-            <author fullname="T. Reddy" initials="T." surname="Reddy"/>
-            <author fullname="V. Smyslov" initials="V." surname="Smyslov"/>
-			<author fullname="S. Fluhrer" initials="S." surname="Fluhrer"/>
-		
-            <date month="February" year="2025"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Work in Progress, " value="Internet-Draft, v04"/>
-        </reference>
--->
-		
-        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.sfluhrer-ipsecme-ikev2-mldsa.xml"/>
-
-<!--
-		<reference anchor="I-D.Flu25"  target="https://datatracker.ietf.org/doc/draft-sfluhrer-ipsecme-ikev2-mldsa/">
-          <front>
-            <title> IKEv2 Support of ML-DSA </title>
-            <author fullname="S. Fluhrer" initials="S." surname="Fluhrer"/>
-		
-            <date month="January" year="2025"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Work in Progress, " value="Internet-Draft, v00"/>
-        </reference>
--->		
-
+<!--        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.sfluhrer-ipsecme-ikev2-mldsa.xml"/> -->
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.hu-ipsecme-pqt-hybrid-auth.xml"/>
-
-<!--
-		<reference anchor="I-D.HMW"  target="https://datatracker.ietf.org/doc/draft-hu-ipsecme-pqt-hybrid-auth/">
-          <front>
-            <title> Post-Quantum Traditional (PQ/T) Hybrid PKI Authentication in the Internet Key Exchange Version 2 (IKEv2) </title>
-			<author fullname="J. Hu" initials="J." surname="Hu"/>
-            <author fullname="Y. Morioka" initials="Y." surname="Morioka"/>
-		    <author fullname="G. Wang" initials="G." surname="Wang"/>
-            <date month="November" year="2024"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Work in Progress, " value="Internet-Draft, v01"/>
-        </reference>
--->
-
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.celi-wiggers-tls-authkem.xml"/>
-
-<!--
-		<reference anchor="I-D.WCS"  target="https://datatracker.ietf.org/doc/draft-celi-wiggers-tls-authkem/">
-          <front>
-            <title> KEM-based Authentication for TLS 1.3 </title>
-            <author fullname="T. Wiggers" initials="T." surname="Wiggers"/>
-            <author fullname="S. Celi" initials="S." surname="Celi"/>
-			<author fullname="P. Schwabe" initials="P." surname="Schwabe"/>
-		    <author fullname="D. Stebila" initials="D." surname="Stebila"/>
-			<author fullname="N. Sullivan" initials="N." surname="Sullivan"/>
-			
-            <date month="April" year="2025"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Work in Progress, " value="Individual Draft, v04"/>
-        </reference>
--->
-
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.wiggers-tls-authkem-psk.xml"/>
-
-<!--
-		<reference anchor="I-D.WCSSS"  target="https://datatracker.ietf.org/doc/draft-wiggers-tls-authkem-psk/">
-          <front>
-            <title> KEM-based pre-shared-key handshakes for TLS 1.3 </title>
-            <author fullname="T. Wiggers" initials="T." surname="Wiggers"/>
-            <author fullname="S. Celi" initials="S." surname="Celi"/>
-			<author fullname="P. Schwabe" initials="P." surname="Schwabe"/>
-		    <author fullname="D. Stebila" initials="D." surname="Stebila"/>
-			<author fullname="N. Sullivan" initials="N." surname="Sullivan"/>
-			
-            <date month="April" year="2025"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Work in Progress, " value="Individual Draft, v03"/>
-        </reference>
--->
-		
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-pquip-hybrid-signature-spectrums.xml"/>
-        
-<!--
-		<reference anchor="I-D.BHCD"  target="https://datatracker.ietf.org/doc/draft-ietf-pquip-hybrid-signature-spectrums/">
-          <front>
-            <title> Hybrid signature spectrums </title>
-            <author fullname="N. Bindel" initials="B." surname="Bindel"/>
-            <author fullname="B. Hale " initials="B." surname="Hale "/>
-			<author fullname="D. Connolly" initials="D." surname="Connolly"/>
-		    <author fullname="F. Driscoll" initials="F." surname="Driscoll"/>
-			
-			<date month="January" year="2025"/>
-            <abstract>
-              <t> .. </t>
-            </abstract>
-          </front>
-          <seriesInfo name="Work in Progress, " value="Internet Draft, v06"/>
-        </reference>
--->		
-
+        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-lamps-kyber-certificates.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-mlkem.xml"/>
+        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-qr-alt.xml"/>
+        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.smyslov-ipsecme-ikev2-downgrade-prevention.xml"/>
 
-<!--
-		<reference anchor="I-D.KR24"  target="https://datatracker.ietf.org/doc/draft-kampanakis-ml-kem-ikev2/">
+        <reference anchor="X.690"  target="">
           <front>
-            <title>Post-quantum Hybrid Key Exchange with ML-KEM in the Internet Key Exchange Protocol Version 2 (IKEv2)</title>
-            <author fullname="P. Kampanakis" initials="K." surname="Kampanakis"/>
-            <author fullname="G. Ravago" initials="G." surname="Ravago"/>
-            <date month="November" year="2024"/>
+            <title>Information Technology - ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER) </title>
+            <author fullname="ITU-T " initials="" surname="ITU-T" />
+            <date month="February" year="2021"/>
             <abstract>
               <t> .. </t>
             </abstract>
           </front>
-          <seriesInfo name="Work in Progress, " value="Internet-Draft, "/>
+          <seriesInfo name="ISO/IEC 8825-1:2021 (E),  " value="ITU-T Recommendation X.690"/>
         </reference>
--->
-		
-	
-
 		
       </references>
     
+    <section anchor="Acknowledgements" numbered="false">
+        <name>Acknowledgements</name>
+        <t>To be added later.
+        </t>
+    </section>
 	
+    <section anchor="Contributors" numbered="false">
+      <name>Contributors</name>
+
+      <t>Uri Blumenthal and Brandon Luo contributed a lot to the design of this protocol as authors of PQuAKE protocol. 
+      </t>
+    </section>
 
 </back>
 
