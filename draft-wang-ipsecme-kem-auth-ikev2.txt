@@ -4,34 +4,21 @@
 
 IP Security Maintenance and Extensions                      G. Wang, Ed.
 Internet-Draft                                       Huawei Int. Pte Ltd
-Intended status: Standards Track                           1 August 2025
-Expires: 2 February 2026
+Intended status: Standards Track                              V. Smyslov
+Expires: 18 April 2026                                        ELVIS-PLUS
+                                                         15 October 2025
 
 
-   KEM based Authentication for the IKEv2 with Post-quantum Security
+   KEM-based Authentication for the IKEv2 with Post-quantum Security
                   draft-wang-ipsecme-kem-auth-ikev2-02
 
 Abstract
 
-   This draft specifies a new authentication mechanism, called KEM based
-   authentication, for the Internet Key Exchange Protocol Version 2
-   (IKEv2) [RFC7296].  This is motivated by the fact that ML-KEM is much
-   more efficient that ML-DSA, which are the post-quantum algoirhtms for
-   mitigating the pontential security threats again quantum computers.
-   The KEM based authenticationth for the IKV2 is achieved via
-   introduing a new value of the IKEv2 Authentication Method registry
-   mantained by IANA.  For using the new authentication method, two
-   peers MUST send the SUPPORTED_AUTH_METHODS Notify, defined by
-   [RFC9593], to negotiate the supported KEM algorithms.  After that,
-   the correponding KEM certificates and cipthertext are exchanged via
-   the IKE_INTERMEDIATE Exchange.  Finally, the IKE messages are
-   authenticated via the shared secret encapsulated between the two
-   peers.  This documents also specifies the instantiation with ML-KEM
-   for this new general authenticaiton method for the IKEv2.
-
-   [EDNOTE: Code points for KEM-based authentication may need to be
-   assigned in the IKEv2 Authenticaion Method registry, maintained by
-   IANA]
+   This draft specifies a new authentication mechanism, called KEM (Key
+   Encapsulation Mechanism) -based authentication, for the Internet Key
+   Exchange Protocol Version 2 (IKEv2).  This is motivated by the fact
+   that some post-quantum KEMs (like ML-KEM) are more efficient than
+   post-quantum signature algorithms (like ML-DSA).
 
 Status of This Memo
 
@@ -48,15 +35,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 February 2026.
-
-
-
-
-Wang                     Expires 2 February 2026                [Page 1]
-
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
-
+   This Internet-Draft will expire on 18 April 2026.
 
 Copyright Notice
 
@@ -72,46 +51,67 @@ Copyright Notice
    described in Section 4.e of the Trust Legal Provisions and are
    provided without warranty as described in the Revised BSD License.
 
+
+
+Wang & Smyslov            Expires 18 April 2026                 [Page 1]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
      1.1.  Notes of Change . . . . . . . . . . . . . . . . . . . . .   2
      1.2.  Introduction  . . . . . . . . . . . . . . . . . . . . . .   3
-   2.  Requirements Language . . . . . . . . . . . . . . . . . . . .   4
+   2.  Requirements Language . . . . . . . . . . . . . . . . . . . .   3
    3.  Key Encapsulation Mechanism and Digital Signature . . . . . .   4
    4.  Comparison of ML-KEM and ML-DSA . . . . . . . . . . . . . . .   5
-   5.  Protocl Details for KEM based Authentication  . . . . . . . .   7
-     5.1.  Exchanges for KEM based Authentication  . . . . . . . . .   8
-     5.2.  KEM based Authentication with Preshared Public Key  . . .   9
-     5.3.  Payload Format for KEM based Authentication . . . . . . .  10
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
-   8.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  12
-   9.  Normative References  . . . . . . . . . . . . . . . . . . . .  12
-   10. Informative References  . . . . . . . . . . . . . . . . . . .  14
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
+   5.  Protocol Overview for KEM-based Authentication  . . . . . . .   7
+   6.  Protocol Details for KEM-based Authentication . . . . . . . .   7
+     6.1.  Exchanges for KEM-based Authentication  . . . . . . . . .   7
+       6.1.1.  The IKE_SA_INIT Exchange  . . . . . . . . . . . . . .   8
+       6.1.2.  The IKE_INTERMEDIATE Exchanges  . . . . . . . . . . .   9
+       6.1.3.  The IKE_AUTH Exchange . . . . . . . . . . . . . . . .  13
+     6.2.  Alternative Sequences of Exchanges  . . . . . . . . . . .  13
+       6.2.1.  Alternative 1: Send Certificates Encrypted Only with
+               the IKE_SA_INIT Keys  . . . . . . . . . . . . . . . .  14
+       6.2.2.  Alternative 2: Change the Order of Certificates and Use
+               Double Encryption . . . . . . . . . . . . . . . . . .  14
+     6.3.  Data Formats  . . . . . . . . . . . . . . . . . . . . . .  15
+       6.3.1.  Authentication Payload for KEM Authentication
+               Method  . . . . . . . . . . . . . . . . . . . . . . .  15
+       6.3.2.  Authentication Announcement for KEM Authentication  .  16
+   7.  Interaction with Other IKEv2 Extensions . . . . . . . . . . .  17
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  17
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  18
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  18
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  18
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  21
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  21
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  21
 
 1.  Introduction
 
 1.1.  Notes of Change
 
-   Two changes have been made in version 01, as a response to comments
+   Version -02 was completely rewritten to accommodate ideas expressed
+   in PQuAKE protocol.
+
+   Two changes have been made in version -01, as a response to comments
    received at 122 meeting:
 
-   *  More details abouth how each side does for running KEM
-      authentication in Section 5.1.
+   *  More details about how each side does for running KEM
+      authentication in Section 6.1.
 
-   *  Added Section 5.2 for KEM authentication with preshared public
-      key.
-
+   *  Added section about KEM authentication with preshared public key.
 
 
 
 
-
-Wang                     Expires 2 February 2026                [Page 2]
+Wang & Smyslov            Expires 18 April 2026                 [Page 2]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
 1.2.  Introduction
@@ -119,74 +119,38 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    Cryptographically-relevant quantum computers (CRQC) pose a threat to
    cryptographically protected data.  In particular, the so-called
    harvest-now-and-decrypt-later (HNDL) attack is considered an imminent
-   threat.  To mitigate this threat again the Internet Key Exchange
+   threat.  To mitigate this threat against the Internet Key Exchange
    Protocol Version 2 (IKEv2) [RFC7296], multiple key exchanges in the
    IKEv2 [RFC9370] was introduced to achieve post-quantum (PQ) security
-   for the exchange.  To offering post-quantum security for the
-   authentication in the IKEv2, "Announcing Supported Authentication
-   Methods in the Internet Key Exchange Protocol Version 2 (IKEv2)"
-   [RFC9593] specifies a new Notify type, called the
-   SUPPORTED_AUTH_METHODS, which allows two peers to indicate the list
-   of supported authentication methods while establishing IKEv2 SA.  One
-   purpose of [RFC9593] is to support post-quantum signature algorithms
-   for authenticaion in the IKEv2, as further described by the following
-   drafts.
+   for the key exchange.
 
    "Signature Authentication in the Internet Key Exchange Version 2
-   (IKEv2)" [I-D.RSF25] specifies how NIST PQ digital algorithms ML-DSA
-   [FIPS204] and SLH-DSA [FIPS205] can be used in the IKEv2 by
-   indicating the supported signature algorithms via exchanging the
-   Notify SIGNATURE_HASH_ALGORITHMS, defined in [RFC7427].  Similarly,
-   "IKEv2 Support of ML-DSA" [I-D.Flu25] specifies how ML-DSA can be run
-   in the IKEv2, by indicating the supported signature algorithms via
-   exchanging the SUPPORTED_AUTH_METHODS Notify, defined in [RFC9593].
-   On the other hand, "Post-Quantum Traditional (PQ/T) Hybrid PKI
-   Authentication in the Internet Key Exchange Version 2 (IKEv2)"
-   [I-D.HMW] specifies how to run general hybrid PQ/T digital algorithms
-   in the IKEv2 via introducing some extensions in the
-   SUPPORTED_AUTH_METHODS Notify.
-
-   For all of those Internet standard drafts, it is the same that the
-   corresponding public key certificates and singatures for the involved
-   siganture algorithms are exchanged via the IKE_INTERMEDIATE Exchange,
-   defined in [RFC9242].
+   (IKEv2)" [I-D.ietf-ipsecme-ikev2-pqc-auth] specifies how NIST PQ
+   digital algorithms ML-DSA [FIPS204] and SLH-DSA [FIPS205] can be used
+   in the IKEv2.  On the other hand, "Post-Quantum Traditional (PQ/T)
+   Hybrid PKI Authentication in the Internet Key Exchange Version 2
+   (IKEv2)" [I-D.hu-ipsecme-pqt-hybrid-auth] specifies how to run
+   general hybrid PQ/T digital algorithms in the IKEv2.
 
    Motivated by the fact that ML-KEM [FIPS203] is much more efficient
    than ML-DSA [FIPS204], "KEM-based Authentication for TLS 1.3"
-   [I-D.WCS] [I-D.WCSSS] specifies how KEM can be used to achieve post-
-   quantum secure authentication for the TLS 1.3 protocol.  The basic
-   idea is as follows: when one entity A receives the certified long
-   term public key of another entity B, A can authenticate B by
-   encapsulating a secret key k using B's KEM public key, and confirming
-   that the communicating entity is indeed B if the entity can
-   successfully return the correct k to A.  The seminal idea for TLS is
-   presented in [SSW20], followed by a number of research papers then.
-   Besides saving communication overhead and computational time, as
+   [I-D.celi-wiggers-tls-authkem] [I-D.wiggers-tls-authkem-psk]
+   specifies how KEM can be used to achieve post-quantum secure
+   authentication for the TLS 1.3 protocol.  The basic idea is as
+   follows: when one entity A receives the certified long term public
+   key of another entity B, A can authenticate B by encapsulating a
+   secret key k using B's KEM public key, and confirming that the
+   communicating entity is indeed B if the entity can successfully
+   return the correct k to A.  The similar idea for TLS is presented in
+   [SSW20], followed by a number of research papers then.  Besides
+   saving communication overhead and computational time, as pointed out
+   in [I-D.celi-wiggers-tls-authkem], KEM-based authentication also
+   benefits to reduce implementation code size, as the code for PQ
+   signature may not need, and KEM-based authentication can re-use the
+   KEM code for ephemeral key establishment.
 
-
-
-Wang                     Expires 2 February 2026                [Page 3]
-
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
-
-
-   pointed out in [I-D.WCS], KEM based authentication also benefits to
-   reduce implementation code size, as the code for PQ singature may not
-   need, and KEM based authentication can re-use the KEM code for
-   ephemeral key establishment.
-
-   This draft specifies how to realise KEM based authentication for the
-   Internet Key Exchange Protocol Version 2 (IKEv2) [RFC7296].  This is
-   achieved by defining a new authenication method, called KEM based
-   Authentication.  Namely, this draft asks to add a new value of the
-   "IKEv2 Authenticaion Method" registry [IANA-IKEv2], mantained by
-   IANA.  To run this new authenticaiton method, two peers MUST send the
-   SUPPORTED_AUTH_METHODS Notify, defined by [RFC9593], in the
-   IKE_SA_INIT Exchange, to negotiate the supported KEM algorithms.
-   After that, the correponding KEM certificates and cipthertext are
-   exchanged via the IKE_INTERMEDIATE Exchange [RFC9593].  This
-   documents also specified the instantiation with ML-KEM for this new
-   general authenticaiton method for the IKEv2.
+   This draft specifies how to use KEM-based authentication for the
+   Internet Key Exchange Protocol Version 2 (IKEv2) [RFC7296].
 
 2.  Requirements Language
 
@@ -196,12 +160,23 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                 [Page 3]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
 3.  Key Encapsulation Mechanism and Digital Signature
 
    Key encapsulation mechanism (KEM) is a kind of key exchange, which
    allows one entity to encapsulate a secret key under a (longterm or
-   ephemeral) public key of another entity.  By following the definiton
-   given in [I-D.KR24], a KEM consists of three algorithms:
+   ephemeral) public key of another entity.  By following the definition
+   given in [I-D.ietf-ipsecme-ikev2-mlkem], a KEM consists of three
+   algorithms:
 
    *  KeyGen(k) -> (pk, sk): A probabilistic key generation algorithm,
       which generates a public encapsulation key pk and a secret
@@ -215,16 +190,9 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
       input a secret decapsulation key sk and ciphertext ct and outputs
       a shared secret ss.
 
-   By following the definiton given in [I-D.BHCD], a signature scheme
+   By following the definition given in
+   [I-D.ietf-pquip-hybrid-signature-spectrums], a signature scheme
    consists of the following three algorithms:
-
-
-
-
-Wang                     Expires 2 February 2026                [Page 4]
-
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
-
 
    *  SKeyGen(k) -> (spk, ssk): A probabilistic key generation
       algorithm, which generates a public verifying key spk and a
@@ -240,25 +208,36 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
       (b=0) of the signature-message pair (s, m).
 
    In August of 2024, NIST released ML-KEM [FIPS203] and ML-DSA
-   [FIPS204], which are both module-lattice based post-quantum
+   [FIPS204], which are both module-lattice-based post-quantum
    algorithms.  Each of both algorithms has three sets of parameters
    corresponding to three NIST security levels.  Namely, ML-KEM-512 for
    Level 1, ML-KEM-768 for Level 3, and ML-KEM-1024 for for Level 5,
    while ML-DSA-44 for Level 2, ML-DSA-65 for Level 3, and ML-DSA-87 for
    Level 5.
 
+
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                 [Page 4]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
 4.  Comparison of ML-KEM and ML-DSA
 
    This section compares ML-KEM and ML-DSA, with respect to the sizes of
    key, ciphertext and signature, and also the computational overhead of
-   key generation, encapsulaion, signing, decasulation, and verifying.
+   key generation, encapsulation, signing, decapsulation, and verifying.
 
    First of all, to compare the communication overhead when using ML-DSA
    and ML-KEM, data from Table 2 in [FIPS204] and Table 3 in [FIPS204]
    are used to generate the following Table 1.  The results show the
    comparison of keys and signature over ciphertext between ML-DSA and
    ML-KEM.  Namely, for all corresponding security levels, the following
-   statements can be conluded:
+   statements can be concluded:
 
    *  The private key size of ML-DSA is about 1.5 times of the
       decapsulation key size of ML-KEM,
@@ -269,33 +248,20 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    *  The signature size of ML-DSA is about 3 times of the ciphertext
       size of ML-KEM.
 
-
-
-
-
-
-
-
-
-Wang                     Expires 2 February 2026                [Page 5]
-
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
-
-
-    +=============+====================+================+=============+
-    |             |    Private Key/    |  Public Key/   |  Signature/ |
-    |             | Decapaaulation Key | Encapaaulation |  Ciphertext |
-    |             |                    |      Key       |             |
-    +=============+====================+================+=============+
-    | ML-DSA-44/  |    2,650/1,632     |   1,312/800    |  2,420/768  |
-    | ML-KEM-512  |       =157%        |     =164%      |    =315%    |
-    +-------------+--------------------+----------------+-------------+
-    | ML-DSA-65/  |    4,032/2,400     |  1,952/1,184   | 3,309/1,088 |
-    | ML-KEM-768  |       =168%        |     =165%      |    =304%    |
-    +-------------+--------------------+----------------+-------------+
-    | ML-DSA-87/  |    4,896/3,168     |  2,592/1,568   | 4,627/1,568 |
-    | ML-KEM-1024 |       =155%        |     =165%      |    =295%    |
-    +-------------+--------------------+----------------+-------------+
+   +=============+===================+===================+=============+
+   |             |    Private Key/   |    Public Key/    |  Signature/ |
+   |             | Decapsulation Key |   Encapsulation   |  Ciphertext |
+   |             |                   |        Key        |             |
+   +=============+===================+===================+=============+
+   | ML-DSA-44/  |    2,650/1,632    |     1,312/800     |  2,420/768  |
+   | ML-KEM-512  |       =157%       |       =164%       |    =315%    |
+   +-------------+-------------------+-------------------+-------------+
+   | ML-DSA-65/  |    4,032/2,400    |    1,952/1,184    | 3,309/1,088 |
+   | ML-KEM-768  |       =168%       |       =165%       |    =304%    |
+   +-------------+-------------------+-------------------+-------------+
+   | ML-DSA-87/  |    4,896/3,168    |    2,592/1,568    | 4,627/1,568 |
+   | ML-KEM-1024 |       =155%       |       =165%       |    =295%    |
+   +-------------+-------------------+-------------------+-------------+
 
       Table 1: Communication Overhead Comparison of ML-DSA and ML-KEM
 
@@ -309,34 +275,22 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    times due to large size of PQ public key, ciphertext and signature,
    especially when the IP packet loss rate reaches about 1%.
 
+
+
+Wang & Smyslov            Expires 18 April 2026                 [Page 5]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
    Next, the computation overhead comparison will be given now.  In
    [HAZ24], the authors present their implementation results of
    Dilithium and Kyber, via various optimization techniques for Keccak
    and the two PQC algorithms.  Concretely, Table 6 in [HAZ24] shows the
    performance comparison of Dilithium and Kyber on ARMv7 Cortex-M4
    processor, presented by clock cycles.  By ignoring the small
-   difference between ML-KEM and its informal verion Kyber, also ML-DSA
-   and its informal verion Dilithium, the following Table 2 is obtained.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wang                     Expires 2 February 2026                [Page 6]
-
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
-
+   difference between ML-KEM and its informal version Kyber, also ML-DSA
+   and its informal version Dilithium, the following Table 2 is
+   obtained.
 
       +=============+===============+===============+===============+
       |             | KeyGen speed/ |  Encap speed/ |  Decap speed/ |
@@ -354,7 +308,7 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
 
       Table 2: Computational Overhead Comparison of ML-DSA and ML-KEM
 
-   By assuming that the copmtuational comparison shown in Table 2
+   By assuming that the computational comparison shown in Table 2
    reasonably presents the performance difference of ML-KEM and ML-DSA
    at the same platform with similar implementation techniques, for all
    three corresponding security levels, the following statements can be
@@ -369,274 +323,592 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    *  The signature verifying time of ML-DSA is over 3 times of the
       decapsulation speed of ML-KEM.
 
-   In the scenario of KEM based authentication, both the private keys
+   In the scenario of KEM-based authentication, both the private keys
    for ML-DSA and ML-KEM will be long term keys, so the private key
    generation time can be ignored, as it is just one time overhead.
    Therefore, by combining signature signing and verifying together, and
    also combining encapsulation and decapsulation together, we can
-   simply say that the computaional time of ML-DSA is about 5 times of
+   simply say that the computational time of ML-DSA is about 5 times of
    that of ML-KEM.
 
-5.  Protocl Details for KEM based Authentication
-
-   By following [RFC9593], two communicating peers send ech other the
-   Notify Message Type SUPPORTED_AUTH_METHODS to negotiate which
-   authentication method will be used to authenticate them to each
-   other.  Bascially, the authentication method can be any one
-   registered in the "IKEv2 Authentication Method" registry under
-   "Internet Key Exchange Version 2 (IKEv2) Parameters" [IANA-IKEv2],
-   maintained by IANA.  To run KEM based Authentication, the draft is
 
 
-
-Wang                     Expires 2 February 2026                [Page 7]
+Wang & Smyslov            Expires 18 April 2026                 [Page 6]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
-   supposed to apply the value of <TBD> for "KEM based Authentication"
-   in the "IKEv2 Authentication Method" registry (Section 7).
+5.  Protocol Overview for KEM-based Authentication
 
-5.1.  Exchanges for KEM based Authentication
+   With a KEM-based authentication peers first perform an ephemeral key
+   exchange that allows them to derive session keys for protecting
+   subsequent exchanges.  This ephemeral key exchange may take place
+   entirely in the IKE_SA_INIT exchange or consist a series subsequent
+   IKE_INTERMEDIATE exchanges, in which case it would be a hybrid key
+   exchange.
 
-   After the initiator starts the IKE_SA_INIT exchange as usual, the
-   responder sents the notify SUPPORTED_AUTH_METHODS with value of <TBD>
-   to indicate that the responder wants to run KEM based Authentication
-   with respect to some specific KEM algorithms, which the responder
-   supports.  These KEMs will be listed in the SUPPORTED_AUTH_METHODS
-   Notify Payload (Section 5.3), ordered by the responder's preference,
-   among other possible authentication methods.
+   After that peers exchange their long-term KEM certificates and then
+   exchange random values encrypted with each other's certificate, both
+   using IKE_INTERMEDIATE exchanges.  In the subsequent IKE_AUTH
+   exchange peers confirm that they both know the random values send by
+   the other side, thus confirming that they can decapsulate these
+   values, thus confirming that they do possess the private keys for
+   their certificates.
 
-   After the initiator receives SUPPORTED_AUTH_METHODS from the
-   resonder, it will select the KEM algorithm from the list of KEMs sent
-   by the responder that has the highest preference and is supported by
-   the initator as well.  After that, the responder MUST use this KEM
-   algorithm to authenticate itself to the initiator.
+   Mode details about the KEM-based authentication are provided in
+   <citations for PQuAKE and other papers needed>.
 
-   Figure 1 below gives an example to show how two peers use the
-   SUPPORTED_AUTH_METHODS notification to run KEM based authentication.
-   In the protocol, the IKE_INTERMEDIATE exchange may be used to
-   faciliate the hybrid key exchange in the IKEv2 as specified in
-   [RFC9370], and to transfer PQ certifates between the responder and
-   the intitator for completing KEM based authentication.
+6.  Protocol Details for KEM-based Authentication
 
-   Once the responder and the inititator have negotiated to run KEM
-   based authentication, shown as the value of 16 in the
-   SUPPORTED_AUTH_METHODS notification, one specific KEM algorithm MUST
-   be selected by the initiator.  After that, both parties MUST
-   encapsulate a shared secret under the public key of the other party
-   and send out the resulting ciphertext.  Then, the peer MUST
-   decapsualte the ciphertext received to obtain the shared secret key
-   encapsulated by the other party.  Next, the AUTH data MUST be
-   calculated according to the specification [RFC7296] via using the MAC
-   algorithm selected.  Finally, once each party successfully verifies
-   the MAC code for the AUTH data received from the other party, the
-   whole IKE key exchange and authentication is successful.
+   The KEM-based authentication in IKEv2 relies on the IKE_INTERMEDIATE
+   exchange [RFC9242] that MUST be supported.  In addition, the
+   following extensions can contribute to the security and the
+   robustness of the protocol.
 
+   *  IKE fragmentation [RFC7383] SHOULD be negotiated in case peers use
+      UDP as a transport for IKE, since KEM public key and KEM
+      ciphertext can be of significant size.
 
+   *  Multiple ley exchanges [RFC9370] has to be utilized if a hybrid
+      key exchange combining traditional and post-quantum key exchange
+      methods is required.
 
+   *  Using group Postquantum Preshared Key (PPK)
+      [I-D.ietf-ipsecme-ikev2-qr-alt] can contribute to the identity
+      hiding, thus it is RECOMMENDED to use.
 
+   *  The ability to authenticate the full protocol transcript
+      [I-D.smyslov-ipsecme-ikev2-downgrade-prevention] protects peers
+      against downgrade attacks and SHOULD be used.
 
-
-
-
-
+6.1.  Exchanges for KEM-based Authentication
 
 
 
 
-Wang                     Expires 2 February 2026                [Page 8]
+
+
+
+Wang & Smyslov            Expires 18 April 2026                 [Page 7]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
-Initiator                                                  Responder
----------------------------------------------------------------------
-HDR(IKE_SA_INIT), SAi1(.. ADDKE*..), KEi, Ni,
-N(INTERMEDIATE_EXCHANGE_SUPPORTED), ... --->
+6.1.1.  The IKE_SA_INIT Exchange
 
-                   <--- HDR(IKE_SA_INIT), SAr1(.. ADDKE*..), [CERTRQ,]
-                        KEr, Nr, N(INTERMEDIATE_EXCHANGE_SUPPORTED), ..
-                        N(SUPPORTED_AUTH_METHODS(..<TBD>..)), ..
+   The initiator wishing to use the KEM-based authentication indicates
+   this to the responder by including a new status type notification
+   USE_AUTHKEM (with type <TBA2>) into the IKE_SA_INIT request message.
+   This notification has the Protocol ID and SPI Size both set to 0
+   (meaning no SPI is present), and its notification data is empty.  To
+   be able to use the KEM-based authentication the initiator MUST also
+   include the INTERMEDIATE_EXCHANGE_SUPPORTED notification.
 
-                    ... (IKE_INTERMEDIATE for ADDKE) ..
+   If the responder receives the IKE_SA_INIT request containing the
+   USE_AUTHKEM notification and it supports and is configured to use the
+   KEM-based authentication, then it sends this notification back in the
+   response.  The responder can optionally include the Certificate
+   Request payload (as defined in [RFC7296]) to help the initiator to
+   select the right KEM certificate.  The responder can also indicate
+   which KEMs it is willing to use for authentication by including the
+   SUPPORTED_AUTH_METHODS notification [RFC9593] in the response.  In
+   this case the notification SHOULD NOT contain announcements with the
+   Auth Method other than a newly defined "KEM-based Authentication"
+   (<TBA1>).  The format of announcement is defined in Section 6.3.2.
 
-HDR(IKE_AUTH), SK{IDi, [CERTRQ,]
-[IDr,] SAi2, TSi, TSr,
-N(SUPPORTED_AUTH_METHODS(..<TBD>..))} --->
+   Peers can also negotiate other IKEv2 extensions during IKE_SA_INIT.
+   Some of them are listed in Section 6.  In particular, the figures
+   below show the optional use of PPK [I-D.ietf-ipsecme-ikev2-qr-alt]
+   during KEM-based authentication.
 
-                    ... (IKE_INTERMEDIATE for [CERT,ct]) ..
-                   <--- HDR(IKE_AUTH), SK{IDr, AUTH, SAr2, TSi, TSr}, ..
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_SA_INIT), SAi1, KEi, Ni,    --->
+   N(INTERMEDIATE_EXCHANGE_SUPPORTED),
+   [N(USE_PPK_INT),]
+   N(USE_AUTHKEM)
+                        <--- HDR(IKE_SA_INIT), SAr1, KEr, Nr, [CERTREQ,]
+                                     N(INTERMEDIATE_EXCHANGE_SUPPORTED),
+                                            [N(SUPPORTED_AUTH_METHODS),]
+                                                       [N(USE_PPK_INT),]
+                                                          N(USE_AUTHKEM)
 
-   Figure 1: An Example of Running KEM based Authentication between
-                              Two Peers
+                     Figure 1: The IKE_SA_INIT Exchange
 
-   If the resulting SUPPORTED_AUTH_METHODS notification with list of
-   autehnticiton methods is too long such that IP fragmentation
-   [RFC7383] of the IKE_SA_INIT response may happen, the responder MAY
-   choose to send empty SUPPORTED_AUTH_METHODS notification in the
-   IKE_SA_INIT exchange response.  Then, the responder and the intiatior
-   can send ech other the SUPPORTED_AUTH_METHODS notification with list
-   of authentictatin methods they support by using the IKE_INTERMEDIATE
-   exchange, as desribed in Section 3.1 of [RFC9593].
+   Peers MUST ignore the USE_AUTHKEM notification in the message if it
+   is not accompanied by the INTERMEDIATE_EXCHANGE_SUPPORTED
+   notification.
 
-   [EDNOTE: More examples may be provided later.]
-
-5.2.  KEM based Authentication with Preshared Public Key
-
-   In Section 5.1, the protocol may need to run one additional round as
-   KEM based authentication has to first send out one's KEM public key
-   and the associated certificate, so that the other party can return
-   back an encapsualted secret as a challenge, before finally releasing
-   the MAC for the AUTH data.  This is naturally not as efficient as
-   signature authentication, which can be sent out in one message
-   consisting of message being authenticated, the digital signarure, and
-   also the corresponing public key certificate used to verify the
-   singature.
-
-   However, the situation will be changed when both parties have already
-   acquied each other's public key (and the associated certificate)
-   before running KEM based authentication.  Such a public key may be
-   pre-installed, cached, or provisoned via out-bound ways.  For TLS
-
+   If using the KEM-based authentication is mandatory for the responder
+   and the initiator did not propose it or failed to make a valid
+   proposal, then the responder MUST send the NO_PROPOSAL_CHOSEN
 
 
-Wang                     Expires 2 February 2026                [Page 9]
+
+Wang & Smyslov            Expires 18 April 2026                 [Page 8]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
-   authentication, the situation has been specified in [I-D.WCSSS].
-   Tnhis KEM based authentication with preshared public key is expected
-   to be useful in scenarios where one or both parties have conctrained
-   capabilities, e.g, IoT devices.
+   notification indicating that the proposed parameters are
+   unacceptable.  Otherwise the responder can continue establishing IKE
+   SA using other authentication method.
 
-   [EDNOTE: An example may be provided later.]
+   If using the KEM-based authentication is mandatory for the initiator
+   and it failed to negotiate it with the responder, then the initiator
+   MUST cancel establishing IKE SA.  Otherwise the initiator can
+   continue using other authentication method.
 
-5.3.  Payload Format for KEM based Authentication
+   After the IKE_SA_INIT exchange completes, peers calculate the session
+   keys as defined in Section 2.14 of [RFC7296] and use these keys to
+   protect the next exchange.
 
-   For easy reference, the SUPPORTED_AUTH_METHODS Notify payload format
-   is shown in the following, as specified in Section 3.2 of [RFC9593].
-   Correspondigly, here, Protocol ID field MUST be set to 0, the SPI
-   Size MUS be set to 0 (meaning there is no SPI field), and the Notify
-   Message Type MUST set to 16443.
+6.1.2.  The IKE_INTERMEDIATE Exchanges
 
-       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      | Next Payload  |C|  RESERVED   |         Payload Length        |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |  Protocol ID  |   SPI Size    |      Notify Message Type      |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      |                                                               |
-      ~          List of Supported Auth Methods Announcements         ~
-      |                                                               |
-      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   Once the KEM-based authentication is negotiated in IKE_SA_INIT, a
+   series of the IKE_INTERMEDIATE exchanges takes place.  These
+   exchanges can be classified as those for the purpose of the KEM-based
+   authentication and those for other purposes.  The exchanges for the
+   KEM base authentication MUST follow all other IKE_INTERMEDIATE
+   exchanges, so that they take place right before the IKE_AUTH
+   exchange.
 
-           Figure 2: SUPPORTED_AUTH_METHODS Notify Payload Format
+6.1.2.1.  The IKE_INTERMEDIATE Exchanges for Other Purposes
 
-   Payload Format for KEM based Authentication Announcement is defined
-   in Figure 3, which is treated as part of the Supported Auth Methods
-   Announcements shown in Figure 2.  Namely, for this part, a number (N)
-   of KEM based authentication methods are listed, as desribed below.
+   First, if multiple key exchanges were negotiated, then one or more
+   IKE_INTERMEDIATE exchanges are performed, right after the IKE_SA_INIT
+   exchange, as defined in [RFC9370].
 
-   *  Length: Length of the whole blob of one announcement in octets;
-      must be greater than 5.
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {KEi(n)}   --->
+                               <---   HDR(IKE_INTERMEDIATE), SK {KEr(n)}
 
-   *  Auth Method: Announced authentication method, which is supposed to
-      <TBD>, standing for "KEM based authentication" for the IKEv2.
+                    Figure 2: Additional Key Exchange(s)
 
-   *  Cert Link: Links this announcement with a particular CA, which
-      issued the KEM certificate for the KEM algorithm identified in
-      AlgorithmIdentifiers below; see Section 3.2.2 of [RFC9593] for
-      detail.
+   Each of these exchanges updates the session keys as defined in
+   Section 2.2.2 of [RFC9370].
 
-   *  Alg Len 1: Length of the KEM algorithm idenfied in
-      AlgorithmIdentifiers below, in octets.
+   If the use of PPKs as defined in [I-D.ietf-ipsecme-ikev2-qr-alt] is
+   negotiated, then the IKE_INTERMEDIATE exchange negotiating the PPK to
+   use is performed then as defined in Section 3.1 of
+   [I-D.ietf-ipsecme-ikev2-qr-alt].
 
-
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {PPK_IDENTITY_KEY)}   --->
+                      <---   HDR(IKE_INTERMEDIATE), SK {N(PPK_IDENTITY)}
 
 
 
-Wang                     Expires 2 February 2026               [Page 10]
+Wang & Smyslov            Expires 18 April 2026                 [Page 9]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
-   *  Alg Len 2: Length of the keyed MAC algorithm idenfied in
-      AlgorithmIdentifiers below, in octets.
+                         Figure 3: PPK Negotiation
 
-   *  AlgorithmIdentifiers: The concatenation of two variable-length
-      ASN.1 objects that are encoded using Distinguished Encoding Rules
-      (DER) [X.690] and identify one specific KEM aglorithm and one
-      keyed MAC algorithm.  Those two ASN.1 objects are combined here
-      temporary for this instance of KEM-based authenticaion.
+   After this exchange the session keys are updated as defined in
+   Section 3.1.1 of [I-D.ietf-ipsecme-ikev2-qr-alt].
 
-   For example, if the concatenation of ML-KEM-768 and SHAKE128 (denoted
-   as ML-KEM-768+SHAKE128 for simplicity), this means that ML-KEM-768
-   will be used to encapsulate and decapsulate the shared secret ss in
-   KEM-based authenticaion, while SHAKE128 with key ss will be used to
-   calculate the IKE authentication code for the IKE data to be
-   authenticated, according to [RFC7296].
+   If both additional key exchange(s) and the use of PPKs as defined in
+   [I-D.ietf-ipsecme-ikev2-qr-alt] are negotiated, then the last
+   additional key exchange MAY alternatively be combined with
+   negotiation the PPK in a single IKE_INTERMEDIATE exchange as shown in
+   Figure 3.  Note, that in many cases only one additional key exchange
+   will be negotiated (as a part of PQ/T hybrid key exchange), thus in
+   this case the last additional key exchange will also be the only one.
 
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {KEi(m),
+   (PPK_IDENTITY_KEY)}   --->
+                               <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
+                                                        N(PPK_IDENTITY)}
+
+    Figure 4: Last Additional Key Exchange Combined with PPK Negotiation
+
+   If this combined IKE_INTERMEDIATE exchange takes place, then upon its
+   completion session keys are updated twice - fist as defined in
+   Section 2.2.2 of [RFC9370] and then, provided the peers negotiate the
+   PPK to use, as defined in Section 3.1.1 of
+   [I-D.ietf-ipsecme-ikev2-qr-alt].
+
+   Note, that while [I-D.ietf-ipsecme-ikev2-qr-alt] generally requires
+   that the PPK negotiation is performed in the last IKE_INTERMEDIATE
+   exchange right before the IKE_AUTH exchange, it also allows this
+   requirement to be overridden by other specification.  This document
+   specifically overrides this requirement by allowing the
+   IKE_INTERMEDIATE exchanges concerned with the KEM-based
+   authentication to take place between the negotiation of PPK and the
+   IKE_AUTH exchange.
+
+6.1.2.2.  The IKE_INTERMEDIATE Exchanges for the KEM Authentication
+
+   The next IKE_INTERMEDIATE exchanges perform the necessary actions for
+   the KEM-based authentication.
+
+   First, the peers exchange their KEM certificates.  The initiator can
+   optionally include the Certificate Request payload to help the
+   responder to select the right KEM certificate.  The initiator can
+   also indicate which KEMs it is willing to use for authentication by
+   including the SUPPORTED_AUTH_METHODS notification [RFC9593] in the
+   response.  In this case the notification SHOULD NOT contain
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 10]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   announcements with the Auth Method other than the "KEM
+   Authentication" (<TBA1>).  The format of announcement is defined in
+   Section 6.3.2.
+
+   The initiator's certificate and the responder's one MAY contain
+   public keys for different KEMs, provided that peers support these
+   KEMs, - there is no requirement that they are for the same KEM.
+
+   Since KEM certificates can have significant size, peers MAY use hash-
+   and-URL certificate lookup (by using "Hash and URL of X.509
+   certificate" or "Hash and URL of X.509 bundle" certificate encoding).
+   In this case the CERT payload would contain the URL and the hash of
+   the certificate(s) as defined in Section 3.6 of [RFC7296].  The
+   advantage of this approach is that a host can avoid downloading the
+   peer's certificates if it cached this certificate from a previous
+   connection.  The hash of a certificate provided in the Certificate
+   payload is used to find the certificate in a cache in this case.
+
+   Besides the KEM certificate, additional intermediate signing
+   certificates can be sent.  The KEM certificate MUST be the first and
+   the only KEM certificate in the message.
+
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {[CERTREQ,]
+   [N(SUPPORTED_AUTH_METHODS),] CERT}   --->
+                                 <---   HDR(IKE_INTERMEDIATE), SK {CERT}
+
+                   Figure 5: Exchange of KEM Certificates
+
+   This exchange does not update the current session keys.
+
+   Once peers exchange their KEM certificates they verify each other's
+   certificate to make sure that it is valid, properly signed by a
+   certificate chain leaded to a trusted CA, and that it is acceptable
+   for peer authentication based on the local policy.  The exact
+   verification steps are out of scope of this document, but generally
+   should follow those defined in [RFC5280].
+
+   The next IKE_INTERMEDIATE exchange is used to exchange the random
+   values encrypted using the KEM certificates that were obtained by the
+   peers in the previous exchange.
+
+
+
+
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 11]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   The peers send each other a new status type notification AUTHKEM_DATA
+   (with type <TBA3>).  The Protocol ID and SPI Size fields are set to 0
+   (meaning no SPI is present).  The Notification Data is a
+   concatenation of two values CT and SSCONF prepared by each peer,
+   where CT_i and SSCONF_i are prepared by the initiator, while CT_r and
+   SSCONF_r are prepared by the responder.  These values are computed as
+   follows ("x" is either "i" or "r"):
+
+   *  CT_x is a ciphertext obtained by encryption a random value SS_x
+      with a public key from the peer's certificate.
+
+   *  SSCONF_x is computed as prf(SK_px, SS_x), where prf is the
+      negotiated PRF for this SA.
+
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}   --->
+                      <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}
+
+               Figure 6: Exchange of Encrypted Random Values
+
+   Upon receiving the message each side performs the following steps:
+
+   1.  Splits the content of the AUTHKEM_DATA notification into CT and
+       SSCONF parts based on the known sizes of the ciphertext of the
+       used KEM certificate and the output size of the negotiated PRF.
+
+   2.  Decrypts CT using the private key corresponding to the
+       certificate sent in the previous exchange and gets peer's SS
+       value.
+
+   3.  Computes peer's SSCONF value and checks whether it matches the
+       received SSCONF value.
+
+   If the computed and the received SSCONF values match, then the host
+   can be sure that it received exactly the same SS value as was sent by
+   its peer.  To complete authentication the host needs to prove this
+   fact to its peer, and to make sure that the peer also received
+   exactly the same SS value as it sent.
+
+   Upon completion of this exchange the session keys are updated.  A new
+   value of SKEYSEED is computed as:
+
+   SKEYSEED' = prf(SK_d, SS_i | SS_r)
+
+
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 12]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   Then all the session keys (SK_d, SK_ai, SK_ar, SK_ei, SK_er, SK_pi,
+   and SK_pr) are computed as defined in Section 2.14 of [RFC7296].
+   These session keys are then used for protecting all subsequent
+   exchanges starting from the IKE_AUTH exchange.
+
+6.1.3.  The IKE_AUTH Exchange
+
+   The IKE_AUTH exchange immediately follows the IKE_INTERMEDIATE
+   exchange where peers sent each other encrypted SS values.  The
+   IKE_AUTH exchange is basically unchanged from that defined in
+   [RFC7296].  The Auth Method field in the AUTH payloads MUST be "KEM
+   Authentication".  The format of the AUTH payload is computed as
+   defined in Section 6.3.1.
+
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_AUTH), SK{IDi, [IDr,]
+   AUTH, SAi2, TSi, TSr}   --->
+                                           <---   HDR(IKE_AUTH), SK{IDr,
+                                                   AUTH, SAr2, TSi, TSr}
+
+                      Figure 7: The IKE_AUTH Exchange
+
+6.1.3.1.  Identities in the IKE_AUTH Exchange
+
+   With KEM based authentication peers have to exchange their KEM
+   certificates before actual authentication of each other.
+   Certificates usually contain some identity information, that the CA
+   asserts the included public key is bound to.  This makes peers aware
+   of each other's identity before the IKE_AUTH exchange starts.
+
+   However, IKEv2 doesn't rely on the identities from certificates when
+   performing authentication.  Instead, Identification payloads (IDi and
+   IDr) are mandatory in the IKE_AUTH exchange and it is they that are
+   included into the AUTH payload calculation.  The content of the IDi
+   and IDr payload may differ from the identification information in the
+   corresponding certificate, as stated in Section 3.5 of [RFC7296].
+
+6.2.  Alternative Sequences of Exchanges
+
+   This section is to be removed eventually.  It provides ideas for
+   alternative design of the protocol.
+
+   The presented sequence of exchanges requires two additional exchanges
+   (namely IKE_INTERMEDIATE exchanges) for KEM-based authentication
+   compared to signature-based authentication.  It is possible to only
+   have one additional IKE_INTERMEDIATE exchange, but this either
+   results in some degradation of security properties or leads to
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 13]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   additional protocol complexity.  Note, that the amount of data
+   exchanged over the wire would not changed, the different items would
+   just be combined in one message.  This, it turn, would increase size
+   of these messages that might not be desirable from reliable delivery
+   point of view.
+
+6.2.1.  Alternative 1: Send Certificates Encrypted Only with the
+        IKE_SA_INIT Keys
+
+   It is possible to exchange certificates before all additional key
+   exchanges (and optional negotiation of the PPK) are completed.  In
+   this case the certificates would only be protected with session keys
+   computed after the IKE_SA_INIT exchange (in case of hybrid key
+   exchange that would be traditional key exchange).
+
+   In this case, the exchange shown in Figure 5 is not needed, since the
+   certificates would be exchanged in the previous exchange.  For
+   example, the exchange shown in Figure 4 would look like:
+
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {KEi(m),
+   (PPK_IDENTITY_KEY), [CERTREQ,]
+   [N(SUPPORTED_AUTH_METHODS),] CERT}   --->
+                               <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
+                                                   (PPK_IDENTITY), CERT}
+
+          Figure 8: Last Additional Key Exchange Combined with PPK
+                  Negotiation and Exchange of Certificates
+
+   This design would decrease the level of identity hiding, since the
+   session keys used to protect the certificates in case of hybrid key
+   exchange could be cracked by an attacker using quantum computer.
+
+   On the other hand, KEM-based authentication is generally more
+   succeptible to learning the identities of the peers by an attacker,
+   because the peers have to exchange their certificates before
+   authenticating each other, which makes it possible for the attacker
+   in the middle to learn them.
+
+6.2.2.  Alternative 2: Change the Order of Certificates and Use Double
+        Encryption
+
+   It is possible to get almost the same protection as in the original
+   design but still eliminating one IKE_INTERMEDIATE exchange by
+   complicating the protocol.
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 14]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   In this case the exchange shown in Figure 5 is also not needed.  The
+   responder sends its certificate first in the previous
+   IKE_INTERMEDIATE exchange.  Note, that this exchange contains the
+   last additional key exchange and optionally the PPK negotiation, thus
+   its messages are not yet protected with the session keys that would
+   result in this exchange - the new key are calculated only once the
+   exchange completes.  However, the responder can calculate the updated
+   keys before it sends the response message.  The idea is that the
+   responder calculates new session keys and use these "future" keys
+   (for the next exchange) to protect its certificate in the encrypted
+   payload, that itself is protected with the "current" session keys.
+
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {KEi(m),
+   (PPK_IDENTITY_KEY), [CERTREQ,]
+   [N(SUPPORTED_AUTH_METHODS),]}   --->
+                               <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
+                                 (PPK_IDENTITY), N(ENCYPTED_CERT)(cert)}
+
+          Figure 9: Last Additional Key Exchange Combined with PPK
+                  Negotiation and Responder's Certificate
+
+   Then the initiator sends its certificate in the exchange shown in
+   Figure 6.
+
+   Initiator                                                   Responder
+   ---------------------------------------------------------------------
+   HDR(IKE_INTERMEDIATE), SK {CERT, N(AUTHKEM_DATA)}   --->
+                      <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}
+
+        Figure 10: Initiator's Certificate and Exchange of Encrypted
+                               Random Values
+
+   This sequence of exchanges allows certificates to be protected at the
+   same level as in the original sequence of exchanges (in particular,
+   both certificates can be protected with group PPK).  The drawback is
+   the added complexity for implementations, since it could break the
+   traditional state transitions logic of IKE.
+
+6.3.  Data Formats
+
+6.3.1.  Authentication Payload for KEM Authentication Method
+
+   The format of the Authentication payload is defined in Section 3.8 of
+   [RFC7296].  In case of KEM-based authentication the Auth Method is
+   set to "KEM Authentication" (<TBA1>).  The Authentication Data is
+   computed as:
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 15]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   For the initiator:
+
+     AUTH = prf( prf(SK_pi, "Key Pad for IKEv2"),
+                      <InitiatorSignedOctets>)
+
+   For the responder:
+
+     AUTH = prf( prf(SK_pr, "Key Pad for IKEv2"),
+                      <ResponderSignedOctets>)
+
+   The content of the InitiatorSignedOctets and the
+   ResponderSignedOctets is defined in Section 3.3.2 of [RFC9242].  If
+   full transcript authentication is employed as specified in
+   [I-D.smyslov-ipsecme-ikev2-downgrade-prevention], then the
+   InitiatorSignedOctets and the ResponderSignedOctets are additionally
+   modified as defined in
+   [I-D.smyslov-ipsecme-ikev2-downgrade-prevention].
+
+6.3.2.  Authentication Announcement for KEM Authentication
+
+   The format of the announcement for the "KEM Authentication" is the
+   same as for "Digital Signature" as shown in Section 3.2.3 of
+   [RFC9593].  For convenience the format is also shown below.
+
+                        1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Length (>5)  |  Auth Method  |  Cert Link 1  | Alg 1 Len 1   |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |  Alg 1 Len 2  |                                               |
-   +-+-+-+-+-+-+-+-+                                               +
-   ~                      AlgorithmIdentifiers 1                   ~
-   |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   | Cert Link 2   |  Alg 2 Len 1  |  Alg 2 Len 1  |               |
+   |  Length (>3)  |  Auth Method  |   Cert Link   |               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +
-   ~                      AlgorithmIdentifiers 2                   ~
    |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   ~                      ...                                      ~
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   | Cert Link N   |  Alg N Len 1  |  Alg N Len 2  |               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               |
-   ~                      AlgorithmIdentifiers N                   ~
+   ~                AlgorithmIdentifier ASN.1 object               ~
    |                                                               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-     Figure 3: Payload Format for KEM based Authentication Announcement
+                 Figure 11: Supported Authentication Method
 
-   [EDNOTE: Moreover, the ss obtained from KEM based Authentication can
-   be twisted with the some key derived from the IKEv2 KE part, as does
-   in [I-D.WCS].  Comments and suggestions are welcome]
+   *  Length - Length of the announcement in octets, must be greater
+      than 3.
 
-   Alternatively, fixed algorithm combination for KEM based
-   authentication, say ML-KEM-768_SHA128, MAY be defined by adding a new
-   value in the "IKEv2 Authenticaion Method" registry [IANA-IKEv2].
-   Similar to the above definition for AlgorithmIdentifiers, ML-KEM-
+   *  Auth Method - Announced authentication method, in this case it is
+      "KEM Authentication".
+
+   *  Cert Link - Links this announcement with particular CA; see
+      Section 3.2.2 of [RFC9593] for details.
+
+   *  AlgorithmIdentifier ASN.1 object - the AlgorithmIdentifier of PKIX
+      (see Section 4.1.1.2 of [RFC5280]), encoded using distinguished
+      encoding rules (DER) [X.690].
 
 
 
-Wang                     Expires 2 February 2026               [Page 11]
+Wang & Smyslov            Expires 18 April 2026                [Page 16]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
-   768_SHA128 means that ML-KEM-768 will be used to encapsulate and
-   decapsulate the shared secret ss in KEM-based authenticaion, while
-   SHA128 with key ss will be used to calculate the IKE authentication
-   code for the IKE data to be authenticated, according to [RFC7296].
-   Compared to AlgorithmIdentifiers, such a fixed algorithm combination
-   can easily be recognized and used, but it sits on the same level as
-   KEM based authentication, the general scheme specified the above.
-   Anyway, this happens for general "Digital Signature" (14) and a
-   specific digital scheme, e.g., "ECDSA with SHA-256 on the P-256
-   curve" (16) [IANA-IKEv2].  Once this happens, such KEM based
-   Authentication Announcements with different Auth Method MUST be
-   merged to the Authentication Announcements described in Figure 3.
+   For "KEM Authentication" announcement the AlgorithmIdentifier MUST
+   contain identifier of a KEM algorithm (and not, for example, of a
+   signature algorithm).  Identifiers for KEM algorithms are specified
+   in the corresponding documents for these algorithms (e.g., for ML-KEM
+   see [I-D.ietf-lamps-kyber-certificates]).
 
-   [EDNOTE: Comments and suggestions are welcome for fixed algorithm
-   combinations. ]
+7.  Interaction with Other IKEv2 Extensions
 
-   [EDNOTE: More examples may be provided later.]
+   To be added.
 
-6.  Security Considerations
+8.  Security Considerations
 
    To be done later.  1) It may be not a good idea by directly showing
    the decapsulated secret ss as the means of authentication here.  The
@@ -644,35 +916,63 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    the KEM public/private key pair as an oracle to decapsualte the
    secret via running a different session, normally within a separate
    protocol or scenario where directly showing such a secret is
-   harmless. 2) It may be preferable or MUST limit the use of such a KEM
-   certificate only for KEM authentication.
+   harmless.  2) It may be preferable or MUST limit the use of such a
+   KEM certificate only for KEM authentication.
 
-7.  IANA Considerations
+9.  IANA Considerations
 
-   This document is supposed to define a new type in the "IKEv2
-   Authentication Method" registry under "Internet Key Exchange Version
-   2 (IKEv2) Parameters" [IANA-IKEv2], maintained by IANA:
+   IANA is requested to make the following changes in the IKEv2
+   registries "Internet Key Exchange Version 2 (IKEv2) Parameters"
+   [IANA-IKEv2]:
 
-          +=======+=============================+===============+
-          | Value | IKEv2 Authentication Method |   Reference   |
-          +=======+=============================+===============+
-          |  TBD  |   KEM based Authentication  | This document |
-          +-------+-----------------------------+---------------+
+   1.  Define a new authentication method "KEM Authentication" in the
+       "IKEv2 Authentication Method" registry:
 
-                                  Table 3
+                    +=======+=============================+
+                    | Value | IKEv2 Authentication Method |
+                    +=======+=============================+
+                    |  TBA1 |      KEM Authentication     |
+                    +-------+-----------------------------+
 
-8.  Acknowledgments
+                                    Table 3
 
-   To be added later.
-
-9.  Normative References
-
+   2.  Define two new status type notifications in the "IKEv2 Notify
+       Message Status Types" registry:
 
 
-Wang                     Expires 2 February 2026               [Page 12]
+
+
+
+
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 17]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
+
+                    +=======+============================+
+                    | Value | Notify Message Status Type |
+                    +=======+============================+
+                    |  TBA2 |        USE_AUTHKEM         |
+                    +-------+----------------------------+
+                    |  TBA3 |        AUTHKEM_DATA        |
+                    +-------+----------------------------+
+
+                                   Table 4
+
+10.  References
+
+10.1.  Normative References
+
+   [IANA-IKEv2]
+              "Internet Key Exchange Version 2 (IKEv2) Parameters", the
+              Internet Assigned Numbers Authority (IANA). ,
+              <https://www.iana.org/assignments/ikev2-parameters/
+              ikev2-parameters.xhtml>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -684,16 +984,6 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
               (IKEv2)", STD 79, RFC 7296, DOI 10.17487/RFC7296, October
               2014, <https://www.rfc-editor.org/info/rfc7296>.
 
-   [RFC7383]  Smyslov, V., "Internet Key Exchange Protocol Version 2
-              (IKEv2) Message Fragmentation", RFC 7383,
-              DOI 10.17487/RFC7383, November 2014,
-              <https://www.rfc-editor.org/info/rfc7383>.
-
-   [RFC7427]  Kivinen, T. and J. Snyder, "Signature Authentication in
-              the Internet Key Exchange Version 2 (IKEv2)", RFC 7427,
-              DOI 10.17487/RFC7427, January 2015,
-              <https://www.rfc-editor.org/info/rfc7427>.
-
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
@@ -703,16 +993,7 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
               DOI 10.17487/RFC9242, May 2022,
               <https://www.rfc-editor.org/info/rfc9242>.
 
-   [RFC9370]  Tjhai, CJ., Tomlinson, M., Bartlett, G., Fluhrer, S., Van
-              Geest, D., Garcia-Morchon, O., and V. Smyslov, "Multiple
-              Key Exchanges in the Internet Key Exchange Protocol
-              Version 2 (IKEv2)", RFC 9370, DOI 10.17487/RFC9370, May
-              2023, <https://www.rfc-editor.org/info/rfc9370>.
-
-   [RFC9593]  Smyslov, V., "Announcing Supported Authentication Methods
-              in the Internet Key Exchange Protocol Version 2 (IKEv2)",
-              RFC 9593, DOI 10.17487/RFC9593, July 2024,
-              <https://www.rfc-editor.org/info/rfc9593>.
+10.2.  Informative References
 
    [FIPS203]  National Institute of Standards and Technology, "FIPS 203:
               Module-Lattice-Based Key-Encapsulation Mechanism
@@ -724,10 +1005,9 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
 
 
 
-
-Wang                     Expires 2 February 2026               [Page 13]
+Wang & Smyslov            Expires 18 April 2026                [Page 18]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
    [FIPS204]  National Institute of Standards and Technology, "FIPS 204:
@@ -742,20 +1022,6 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
               2024, <https://nvlpubs.nist.gov/nistpubs/FIPS/
               NIST.FIPS.204.pdf>.
 
-   [X.690]    ITU-T, "Information Technology - ASN.1 encoding rules:
-              Specification of Basic Encoding Rules (BER), Canonical
-              Encoding Rules (CER) and Distinguished Encoding Rules
-              (DER)", ISO/IEC 8825-1:2021 (E), ITU-T Recommendation
-              X.690, February 2021.
-
-   [IANA-IKEv2]
-              "Internet Key Exchange Version 2 (IKEv2) Parameters", the
-              Internet Assigned Numbers Authority (IANA). ,
-              <https://www.iana.org/assignments/ikev2-parameters/
-              ikev2-parameters.xhtml>.
-
-10.  Informative References
-
    [HAZ24]    Huang, J., Adomnicai, A., Zhang, J., Dai, W., Liu, Y.,
               Cheung, R. C. C., Koc, C. K., and D. Chen, "Revisiting
               Keccak and Dilithium Implementations on ARMv7-M", IACR
@@ -765,34 +1031,15 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
               <https://tches.iacr.org/index.php/TCHES/article/
               view/11419>.
 
-   [SSW20]    Schwabe, P., Stebila, D., and T. Wiggers, "Post-quantum
-              TLS without handshake signatures", In the Proceedings of
-              ACM CCS 2020, pages 1461–1480. ACM
-              Press. doi:10.1145/3372297.3423350., November 2020.
+   [I-D.celi-wiggers-tls-authkem]
+              Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
+              Sullivan, "KEM-based Authentication for TLS 1.3", Work in
+              Progress, Internet-Draft, draft-celi-wiggers-tls-authkem-
+              05, 22 April 2025, <https://datatracker.ietf.org/doc/html/
+              draft-celi-wiggers-tls-authkem-05>.
 
-   [I-D.RSF25]
-              Reddy.K, T., Smyslov, V., and S. Fluhrer, "Signature
-              Authentication in the Internet Key Exchange Version 2
-              (IKEv2) using PQC", Work in Progress, Internet-Draft,
-              draft-ietf-ipsecme-ikev2-pqc-auth-02, 11 April 2025,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
-              ikev2-pqc-auth-02>.
-
-
-
-
-Wang                     Expires 2 February 2026               [Page 14]
-
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
-
-
-   [I-D.Flu25]
-              Fluhrer, S., "IKEv2 Support of ML-DSA", Work in Progress,
-              Internet-Draft, draft-sfluhrer-ipsecme-ikev2-mldsa-01, 28
-              July 2025, <https://datatracker.ietf.org/doc/html/draft-
-              sfluhrer-ipsecme-ikev2-mldsa-01>.
-
-   [I-D.HMW]  Hu, J., Morioka, Y., and G. WANG, "Post-Quantum
+   [I-D.hu-ipsecme-pqt-hybrid-auth]
+              Hu, J., Morioka, Y., and G. WANG, "Post-Quantum
               Traditional (PQ/T) Hybrid PKI Authentication in the
               Internet Key Exchange Version 2 (IKEv2)", Work in
               Progress, Internet-Draft, draft-hu-ipsecme-pqt-hybrid-
@@ -800,13 +1047,63 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
               <https://datatracker.ietf.org/doc/html/draft-hu-ipsecme-
               pqt-hybrid-auth-02>.
 
-   [I-D.WCS]  Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
-              Sullivan, "KEM-based Authentication for TLS 1.3", Work in
-              Progress, Internet-Draft, draft-celi-wiggers-tls-authkem-
-              05, 22 April 2025, <https://datatracker.ietf.org/doc/html/
-              draft-celi-wiggers-tls-authkem-05>.
+   [I-D.ietf-ipsecme-ikev2-mlkem]
+              Kampanakis, P., "Post-quantum Hybrid Key Exchange with ML-
+              KEM in the Internet Key Exchange Protocol Version 2
+              (IKEv2)", Work in Progress, Internet-Draft, draft-ietf-
+              ipsecme-ikev2-mlkem-03, 29 September 2025,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
+              ikev2-mlkem-03>.
 
-   [I-D.WCSSS]
+   [I-D.ietf-ipsecme-ikev2-pqc-auth]
+              Reddy.K, T., Smyslov, V., and S. Fluhrer, "Signature
+              Authentication in the Internet Key Exchange Version 2
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 19]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+              (IKEv2) using PQC", Work in Progress, Internet-Draft,
+              draft-ietf-ipsecme-ikev2-pqc-auth-04, 5 October 2025,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
+              ikev2-pqc-auth-04>.
+
+   [I-D.ietf-ipsecme-ikev2-qr-alt]
+              Smyslov, V., "Mixing Preshared Keys in the
+              IKE_INTERMEDIATE and in the CREATE_CHILD_SA Exchanges of
+              IKEv2 for Post-quantum Security", Work in Progress,
+              Internet-Draft, draft-ietf-ipsecme-ikev2-qr-alt-10, 23 May
+              2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
+              ipsecme-ikev2-qr-alt-10>.
+
+   [I-D.ietf-lamps-kyber-certificates]
+              Turner, S., Kampanakis, P., Massimo, J., and B.
+              Westerbaan, "Internet X.509 Public Key Infrastructure -
+              Algorithm Identifiers for the Module-Lattice-Based Key-
+              Encapsulation Mechanism (ML-KEM)", Work in Progress,
+              Internet-Draft, draft-ietf-lamps-kyber-certificates-11, 22
+              July 2025, <https://datatracker.ietf.org/doc/html/draft-
+              ietf-lamps-kyber-certificates-11>.
+
+   [I-D.ietf-pquip-hybrid-signature-spectrums]
+              Bindel, N., Hale, B., Connolly, D., and F. D, "Hybrid
+              signature spectrums", Work in Progress, Internet-Draft,
+              draft-ietf-pquip-hybrid-signature-spectrums-07, 20 June
+              2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
+              pquip-hybrid-signature-spectrums-07>.
+
+   [I-D.smyslov-ipsecme-ikev2-downgrade-prevention]
+              Smyslov, V. and C. Patton, "Prevention Downgrade Attacks
+              on the Internet Key Exchange Protocol Version 2 (IKEv2)",
+              Work in Progress, Internet-Draft, draft-smyslov-ipsecme-
+              ikev2-downgrade-prevention-02, 28 August 2025,
+              <https://datatracker.ietf.org/doc/html/draft-smyslov-
+              ipsecme-ikev2-downgrade-prevention-02>.
+
+   [I-D.wiggers-tls-authkem-psk]
               Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
               Sullivan, "KEM-based pre-shared-key handshakes for TLS
               1.3", Work in Progress, Internet-Draft, draft-wiggers-tls-
@@ -814,32 +1111,71 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
               <https://datatracker.ietf.org/doc/html/draft-wiggers-tls-
               authkem-psk-03>.
 
-   [I-D.BHCD] Bindel, N., Hale, B., Connolly, D., and F. D, "Hybrid
-              signature spectrums", Work in Progress, Internet-Draft,
-              draft-ietf-pquip-hybrid-signature-spectrums-07, 20 June
-              2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
-              pquip-hybrid-signature-spectrums-07>.
-
-   [I-D.KR24] Kampanakis, P., "Post-quantum Hybrid Key Exchange with ML-
-              KEM in the Internet Key Exchange Protocol Version 2
-              (IKEv2)", Work in Progress, Internet-Draft, draft-ietf-
-              ipsecme-ikev2-mlkem-01, 30 July 2025,
-              <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
-              ikev2-mlkem-01>.
-
-Author's Address
 
 
 
 
 
 
-
-
-
-Wang                     Expires 2 February 2026               [Page 15]
+Wang & Smyslov            Expires 18 April 2026                [Page 20]
 
-Internet-Draft   KEM based Authentication for the IKEv2      August 2025
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
+
+
+   [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
+              Housley, R., and W. Polk, "Internet X.509 Public Key
+              Infrastructure Certificate and Certificate Revocation List
+              (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
+              <https://www.rfc-editor.org/info/rfc5280>.
+
+   [RFC7383]  Smyslov, V., "Internet Key Exchange Protocol Version 2
+              (IKEv2) Message Fragmentation", RFC 7383,
+              DOI 10.17487/RFC7383, November 2014,
+              <https://www.rfc-editor.org/info/rfc7383>.
+
+   [RFC9370]  Tjhai, CJ., Tomlinson, M., Bartlett, G., Fluhrer, S., Van
+              Geest, D., Garcia-Morchon, O., and V. Smyslov, "Multiple
+              Key Exchanges in the Internet Key Exchange Protocol
+              Version 2 (IKEv2)", RFC 9370, DOI 10.17487/RFC9370, May
+              2023, <https://www.rfc-editor.org/info/rfc9370>.
+
+   [RFC9593]  Smyslov, V., "Announcing Supported Authentication Methods
+              in the Internet Key Exchange Protocol Version 2 (IKEv2)",
+              RFC 9593, DOI 10.17487/RFC9593, July 2024,
+              <https://www.rfc-editor.org/info/rfc9593>.
+
+   [SSW20]    Schwabe, P., Stebila, D., and T. Wiggers, "Post-quantum
+              TLS without handshake signatures", In the Proceedings of
+              ACM CCS 2020, pages 1461–1480. ACM
+              Press. doi:10.1145/3372297.3423350., November 2020.
+
+   [X.690]    ITU-T, "Information Technology - ASN.1 encoding rules:
+              Specification of Basic Encoding Rules (BER), Canonical
+              Encoding Rules (CER) and Distinguished Encoding Rules
+              (DER)", ISO/IEC 8825-1:2021 (E), ITU-T Recommendation
+              X.690, February 2021.
+
+Acknowledgements
+
+   To be added later.
+
+Contributors
+
+   Uri Blumenthal and Brandon Luo contributed a lot to the design of
+   this protocol as authors of PQuAKE protocol.
+
+Authors' Addresses
+
+
+
+
+
+
+
+
+Wang & Smyslov            Expires 18 April 2026                [Page 21]
+
+Internet-Draft   KEM-based Authentication for the IKEv2     October 2025
 
 
    Guilin Wang (editor)
@@ -851,6 +1187,13 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
    Email: Wang.Guilin@huawei.com
 
 
+   Valery Smyslov
+   ELVIS-PLUS
+   PO Box 81
+   Moscow (Zelenograd)
+   124460
+   Russian Federation
+   Email: svan@elvis.ru
 
 
 
@@ -886,11 +1229,4 @@ Internet-Draft   KEM based Authentication for the IKEv2      August 2025
 
 
 
-
-
-
-
-
-
-
-Wang                     Expires 2 February 2026               [Page 16]
+Wang & Smyslov            Expires 18 April 2026                [Page 22]
