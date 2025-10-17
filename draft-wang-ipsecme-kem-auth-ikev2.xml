@@ -43,7 +43,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 -->
 
 <front>
-<title abbrev="KEM-based Authentication for the IKEv2"> KEM-based Authentication for the IKEv2 with Post-quantum Security </title>
+<title abbrev="KEM-based Authentication for IKEv2"> KEM-based Authentication for IKEv2 with Post-quantum Security </title>
 <!--  [REPLACE/DELETE] abbrev. The abbreviated title is required if the full title is longer than 39 characters -->
 
 <seriesInfo name="Internet-Draft" value="draft-wang-ipsecme-kem-auth-ikev2-02"/>
@@ -144,7 +144,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     <t> Cryptographically-relevant quantum computers (CRQC) pose a threat to cryptographically protected data. In particular, 
     the so-called harvest-now-and-decrypt-later (HNDL) attack is considered an imminent threat. To mitigate this threat against 
     the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>, an extension allowing multiple key exchanges in 
-    the IKEv2 <xref target="RFC9370"></xref> was introduced to achieve post-quantum (PQ) security for the key exchange. 
+    IKEv2 <xref target="RFC9370"></xref> was introduced to achieve post-quantum (PQ) security for the key exchange. 
     <!-- To offering post-quantum security for the authentication in the IKEv2, "Announcing Supported Authentication Methods 
     in the Internet Key Exchange Protocol Version 2 (IKEv2)" <xref target="RFC9593"></xref> specifies a new Notify type, 
     called the SUPPORTED_AUTH_METHODS, which allows two peers to indicate the list of supported authentication methods 
@@ -152,12 +152,12 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     for authenticaion in the IKEv2, as further described by the following drafts.--></t>  
 
     <t> "Signature Authentication in the Internet Key Exchange Version 2 (IKEv2) using PQC" <xref target="I-D.ietf-ipsecme-ikev2-pqc-auth"></xref> specifies 
-    how NIST PQ digital algorithms ML-DSA <xref target="FIPS204"></xref> and SLH-DSA <xref target="FIPS205"></xref> can be used in the IKEv2. 
+    how NIST PQ digital algorithms ML-DSA <xref target="FIPS204"></xref> and SLH-DSA <xref target="FIPS205"></xref> can be used in IKEv2. 
     <!-- by indicating the supported signature algorithms via exchanging the Notify SIGNATURE_HASH_ALGORITHMS, defined in <xref target="RFC7427"></xref>. --> 
     <!-- Similarly, "IKEv2 Support of ML-DSA" <xref target="I-D.sfluhrer-ipsecme-ikev2-mldsa"></xref> specifies how ML-DSA can be run in the IKEv2, by indicating 
     the supported signature algorithms via exchanging the SUPPORTED_AUTH_METHODS Notify, defined in <xref target="RFC9593"></xref>.  --> On the other hand, 
     "Post-Quantum Traditional (PQ/T) Hybrid PKI Authentication in the Internet Key Exchange Version 2 (IKEv2)" 
-    <xref target="I-D.hu-ipsecme-pqt-hybrid-auth"> </xref> specifies how to run general hybrid PQ/T digital algorithms in the IKEv2<!-- via introducing 
+    <xref target="I-D.hu-ipsecme-pqt-hybrid-auth"> </xref> specifies how to run general hybrid PQ/T digital algorithms in IKEv2<!-- via introducing 
     some extensions in the SUPPORTED_AUTH_METHODS Notify -->. </t>
 
     <!-- <t> For all of those Internet standard drafts, it is the same that the corresponding public key certificates and singatures for the involved 
@@ -690,7 +690,7 @@ AUTH, SAi2, TSi, TSr}   --->
 
                 <t> However, IKEv2 doesn't rely on the identities from certificates when performing authentication.
                 Instead, Identification payloads (IDi and IDr) are mandatory in the IKE_AUTH exchange
-                and exactly they that are included into the AUTH payload calculation.
+                and exactly they are included into the AUTH payload calculation.
                 The content of the IDi and IDr payload may differ from the identification
                 information in the corresponding certificate, as stated in Section 3.5 of <xref target="RFC7296" />.
                 </t>
