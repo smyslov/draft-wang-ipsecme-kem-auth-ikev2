@@ -143,7 +143,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 
     <t> Cryptographically-relevant quantum computers (CRQC) pose a threat to cryptographically protected data. In particular, 
     the so-called harvest-now-and-decrypt-later (HNDL) attack is considered an imminent threat. To mitigate this threat against 
-    the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>, multiple key exchanges in 
+    the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>, an extension allowing multiple key exchanges in 
     the IKEv2 <xref target="RFC9370"></xref> was introduced to achieve post-quantum (PQ) security for the key exchange. 
     <!-- To offering post-quantum security for the authentication in the IKEv2, "Announcing Supported Authentication Methods 
     in the Internet Key Exchange Protocol Version 2 (IKEv2)" <xref target="RFC9593"></xref> specifies a new Notify type, 
@@ -151,7 +151,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     while establishing IKEv2 SA. One purpose of <xref target="RFC9593"></xref> is to support post-quantum signature algorithms 
     for authenticaion in the IKEv2, as further described by the following drafts.--></t>  
 
-    <t> "Signature Authentication in the Internet Key Exchange Version 2 (IKEv2)" <xref target="I-D.ietf-ipsecme-ikev2-pqc-auth"></xref> specifies 
+    <t> "Signature Authentication in the Internet Key Exchange Version 2 (IKEv2) using PQC" <xref target="I-D.ietf-ipsecme-ikev2-pqc-auth"></xref> specifies 
     how NIST PQ digital algorithms ML-DSA <xref target="FIPS204"></xref> and SLH-DSA <xref target="FIPS205"></xref> can be used in the IKEv2. 
     <!-- by indicating the supported signature algorithms via exchanging the Notify SIGNATURE_HASH_ALGORITHMS, defined in <xref target="RFC7427"></xref>. --> 
     <!-- Similarly, "IKEv2 Support of ML-DSA" <xref target="I-D.sfluhrer-ipsecme-ikev2-mldsa"></xref> specifies how ML-DSA can be run in the IKEv2, by indicating 
@@ -285,7 +285,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
       especially when the IP packet loss rate reaches about 1%. </t>
 
       <t> Next, the computation overhead comparison will be given now. In <xref target="HAZ24"></xref>, the authors present their implementation 
-      results of Dilithium and Kyber, via various optimization techniques for Keccak and the two PQC algorithms. Concretely, Table 6 
+      results of Dilithium and Kyber, via various optimization techniques for Keccak and the two PQ algorithms. Concretely, Table 6 
       in <xref target="HAZ24"></xref> shows the performance comparison of Dilithium and Kyber on ARMv7 Cortex-M4 processor, presented by clock cycles. 
       By ignoring the small difference between ML-KEM and its informal version Kyber, also ML-DSA and its informal version Dilithium, 
       the following <xref target="computation_comp" /> is obtained. </t>
@@ -295,9 +295,9 @@ Have a section that is just examples of what is new in v3 (such as new table fea
           <thead>
     <tr>
       <th></th>
-      <th align="center">KeyGen speed/SKeyGen speed</th>
-      <th align="center">Encap speed/Sign speed</th>
-      <th align="center">Decap speed/Verify speed</th>
+      <th align="center">KeyGen Time/SKeyGen Time</th>
+      <th align="center">Encap Time/Sign Time</th>
+      <th align="center">Decap Time/Verify Time</th>
     </tr>
   </thead>
   <tbody>
@@ -328,8 +328,8 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 
     <ul>
     <li> The private key generation time of ML-DSA is about 4 times of that of ML-KEM. </li> 
-    <li> The signature signing time of ML-DSA is about 7 times of the encapsulation speed of ML-KEM. </li>
-    <li> The signature verifying time of ML-DSA is over 3 times of the decapsulation speed of ML-KEM. </li>
+    <li> The signature signing time of ML-DSA is about 7 times of the encapsulation time of ML-KEM. </li>
+    <li> The signature verifying time of ML-DSA is over 3 times of the decapsulation time of ML-KEM. </li>
     </ul>
 
     <t> In the scenario of KEM-based authentication, both the private keys for ML-DSA and ML-KEM will be long term keys, so the private key generation time 
@@ -339,17 +339,25 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     </section>
 	
     <section title="Protocol Overview for KEM-based Authentication" anchor="Overview">
-        <t> With a KEM-based authentication peers first perform an ephemeral key exchange that allows
+        <t> With a KEM-based authentication in IKEv2 peers first perform an ephemeral key exchange that allows
         them to derive session keys for protecting subsequent exchanges. This ephemeral key exchange
-        may take place entirely in the IKE_SA_INIT exchange or consist a series subsequent IKE_INTERMEDIATE
-        exchanges, in which case it would be a hybrid key exchange.
+        may take place entirely in the IKE_SA_INIT exchange or be accompanied by a series of subsequent IKE_INTERMEDIATE
+        exchanges <xref target="RFC9370" />, in which case it would be a hybrid key exchange.
         </t>
 
-        <t> After that peers exchange their long-term KEM certificates and then exchange random
+<!--        <t> After that peers exchange their long-term KEM certificates and then exchange random
         values encrypted with each other's certificate, both using IKE_INTERMEDIATE exchanges.
         In the subsequent IKE_AUTH exchange peers confirm that they both know the random values
         send by the other side, thus confirming that they can decapsulate these values,
         thus confirming that they do possess the private keys for their certificates.
+        </t> -->
+
+        <t> To run KEM-based Authentication in IKEv2, the two peers first exchange their long-term KEM certificates, 
+        and then exchange random values encapsulated with each other's long-term KEM public key from the corresponding KEM certificate. 
+        Here, both long-term KEM certificates and the KEM ciphertexts encapsulating the random values are sent via the IKE_INTERMEDIATE exchanges. 
+        After decapsulating these random values the two peers cam demonstrate their knowledge of the random values 
+        sent by the other side in the subsequent IKE_AUTH exchange, thus confirming that they do possess the corresponding KEM 
+        private keys linked to their long-term KEM certificates.
         </t>
 
         <t> Mode details about the KEM-based authentication are provided in &lt;citations for PQuAKE and other papers needed&gt;.
@@ -364,7 +372,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
             <ul>
                 <li> IKE fragmentation <xref target="RFC7383" /> <bcp14>SHOULD</bcp14> be negotiated in case peers use UDP as a transport for IKE,
                 since KEM public key and KEM ciphertext can be of significant size.</li>
-                <li> Multiple ley exchanges <xref target="RFC9370" /> has to be utilized if a hybrid key exchange combining
+                <li> Multiple key exchanges <xref target="RFC9370" /> has to be utilized if a hybrid key exchange combining
                 traditional and post-quantum key exchange methods is required.</li>
                 <li> Using group Postquantum Preshared Key (PPK) <xref target="I-D.ietf-ipsecme-ikev2-qr-alt" /> can
                 contribute to the identity hiding, thus it is <bcp14>RECOMMENDED</bcp14> to use.</li>
@@ -542,7 +550,7 @@ HDR(IKE_INTERMEDIATE), SK {KEi(m),
                 </t>
             </section>
 
-            <section anchor="ike_intermediate_pqake" title="The IKE_INTERMEDIATE Exchanges for the KEM Authentication">
+            <section anchor="ike_intermediate_pqake" title="The IKE_INTERMEDIATE Exchanges for the KEM-based Authentication">
 
                 <t> The next IKE_INTERMEDIATE exchanges perform the necessary actions for the KEM-based authentication.
                 </t>
@@ -591,8 +599,9 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ,]
                 are out of scope of this document, but generally should follow those defined in <xref target="RFC5280" />.
                 </t>
 
-                <t> The next IKE_INTERMEDIATE exchange is used to exchange the random values
-                encrypted using the KEM certificates that were obtained by the peers in the previous exchange.
+                <t> The next IKE_INTERMEDIATE exchange is used to exchange the ciphertexts CT_i and CT_r
+                obtained as a result of encapsulation of random values SS_i and SS_r using the long-term KEM public keys. 
+                The KEM public keys are extracted from the KEM certificates received in the previous exchange.
                 </t>
 
                 <t> The peers send each other a new status type notification AUTHKEM_DATA (with type &lt;TBA3&gt;).
@@ -602,9 +611,13 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ,]
                 These values are computed as follows ("x" is either "i" or "r"):
 
                 <ul>
-                    <li>CT_x is a ciphertext obtained by encryption a random value SS_x with a public key from the peer's certificate.</li>
+                    <li>CT_x is a ciphertext obtained as a result of encapsulation of a random value SS_x 
+                    with a the long-term public key from the peer's certificate.</li>
                     <li>SSCONF_x is computed as prf(SK_px, SS_x), where prf is the negotiated PRF for this SA.</li>
                 </ul>
+
+                As a result, the data in the AUTHKEM_DATA notification sent by the initiator is CT_i | SSCONF_i and
+                the data in this notification sent by the responder is CT_r | SSCONF_r.
                 </t>
 
                 <figure anchor="fig_intermediate_kem" title="Exchange of Encrypted Random Values">
@@ -620,8 +633,9 @@ HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}   --->
 
                 <ol>
                     <li>Splits the content of the AUTHKEM_DATA notification into CT and SSCONF parts based on the known sizes of 
-                    the ciphertext of the used KEM certificate and the output size of the negotiated PRF.</li>
-                    <li>Decrypts CT using the private key corresponding to the certificate sent in the previous exchange and gets peer's SS value.</li>
+                    the ciphertext of the used KEM algorithm and the output size of the negotiated PRF.</li>
+                    <li>Decrypts CT using the receiver's own private key corresponding to its own KEM certificate,
+                    which was sent in the previous exchange to the peer, and gets the SS value encapsulated by the peer.</li>
                     <li>Computes peer's SSCONF value and checks whether it matches the received SSCONF value.</li>
                 </ol>
 
@@ -676,7 +690,7 @@ AUTH, SAi2, TSi, TSr}   --->
 
                 <t> However, IKEv2 doesn't rely on the identities from certificates when performing authentication.
                 Instead, Identification payloads (IDi and IDr) are mandatory in the IKE_AUTH exchange
-                and it is they that are included into the AUTH payload calculation.
+                and exactly they that are included into the AUTH payload calculation.
                 The content of the IDi and IDr payload may differ from the identification
                 information in the corresponding certificate, as stated in Section 3.5 of <xref target="RFC7296" />.
                 </t>
@@ -812,7 +826,7 @@ HDR(IKE_INTERMEDIATE), SK {CERT, N(AUTHKEM_DATA)}   --->
 -->
 
     <section title="Data Formats" anchor="formats">
-        <section title="Authentication Payload for KEM Authentication Method" anchor="kem-auth-method">
+        <section title="Authentication Payload for KEM-based Authentication" anchor="kem-auth-method">
             <t> The format of the Authentication payload is defined in Section 3.8 of <xref target="RFC7296" />.
             In case of KEM-based authentication the Auth Method is set to "KEM Authentication" (&lt;TBA1&gt;).
             The Authentication Data is computed as:
