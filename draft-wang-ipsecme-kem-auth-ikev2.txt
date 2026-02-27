@@ -657,7 +657,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      February 2026
 
    This content (either bundle or hash & URL) is sent in a new payload
    Encrypted Certificate (with type <TBA0 by IANA>).  The content is
-   encrypted using key derived from SS_r.  The details of the
+   encrypted using key derived from SS_i.  The details of the
    Certificate payload encryption are provided in Section 6.3.3.
    Encryption provides protection of initiator's identity against active
    attackers, since only the responder is able to decrypt initiator's
@@ -993,7 +993,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      February 2026
 
    where SK_d is from the current session keys (see Section 3.3.1 of
    [RFC9242]) and K is the key to protect the certificate data (like
-   SS_r in Section 6.1.2.2).
+   SS_i in Section 6.1.2.2).
 
 7.  Interaction with Other IKEv2 Extensions
 

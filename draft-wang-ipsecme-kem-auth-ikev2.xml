@@ -623,7 +623,7 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
                 </t>
 
                 <t> This content (either bundle or hash &amp; URL) is sent in a new payload Encrypted Certificate 
-                (with type &lt;TBA0 by IANA&gt;). The content is encrypted using key derived from SS_r.
+                (with type &lt;TBA0 by IANA&gt;). The content is encrypted using key derived from SS_i.
                 The details of the Certificate payload encryption are provided in <xref target="encryptedcert" />.
                 Encryption provides protection of initiator's identity against active attackers, since only the responder
                 is able to decrypt initiator's KEM certificate. 
@@ -957,7 +957,7 @@ For the responder:
             </figure>
 
             <t>where SK_d is from the current session keys (see Section 3.3.1 of <xref target="RFC9242" />) and K is the key 
-            to protect the certificate data (like SS_r in <xref target="ike_intermediate_pqake" />).
+            to protect the certificate data (like SS_i in <xref target="ike_intermediate_pqake" />).
             </t>
 
         </section>
