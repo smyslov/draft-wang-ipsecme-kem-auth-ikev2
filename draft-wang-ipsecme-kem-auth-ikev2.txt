@@ -5,12 +5,12 @@
 IP Security Maintenance and Extensions                      G. Wang, Ed.
 Internet-Draft                                       Huawei Int. Pte Ltd
 Intended status: Standards Track                              V. Smyslov
-Expires: 20 April 2026                                        ELVIS-PLUS
-                                                         17 October 2025
+Expires: 3 September 2026                                     ELVIS-PLUS
+                                                            2 March 2026
 
 
      KEM-based Authentication for IKEv2 with Post-quantum Security
-                  draft-wang-ipsecme-kem-auth-ikev2-02
+                  draft-wang-ipsecme-kem-auth-ikev2-03
 
 Abstract
 
@@ -35,11 +35,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 20 April 2026.
+   This Internet-Draft will expire on 3 September 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Wang & Smyslov            Expires 20 April 2026                 [Page 1]
+Wang & Smyslov          Expires 3 September 2026                [Page 1]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
 Table of Contents
@@ -71,25 +71,26 @@ Table of Contents
      6.1.  Exchanges for KEM-based Authentication  . . . . . . . . .   8
        6.1.1.  The IKE_SA_INIT Exchange  . . . . . . . . . . . . . .   8
        6.1.2.  The IKE_INTERMEDIATE Exchanges  . . . . . . . . . . .   9
-       6.1.3.  The IKE_AUTH Exchange . . . . . . . . . . . . . . . .  13
+       6.1.3.  The IKE_AUTH Exchange . . . . . . . . . . . . . . . .  14
      6.2.  Alternative Sequences of Exchanges  . . . . . . . . . . .  14
-       6.2.1.  Alternative 1: Send Certificates Encrypted Only with
-               the IKE_SA_INIT Keys  . . . . . . . . . . . . . . . .  14
-       6.2.2.  Alternative 2: Change the Order of Certificates and Use
-               Double Encryption . . . . . . . . . . . . . . . . . .  15
+       6.2.1.  Alternative 1: Send Responder Certificate with
+               Protection Only by the IKE_SA_INIT Keys . . . . . . .  15
+       6.2.2.  Alternative 2: Use "Future" Keys to protect Responder's
+               Certificate . . . . . . . . . . . . . . . . . . . . .  16
      6.3.  Data Formats  . . . . . . . . . . . . . . . . . . . . . .  16
        6.3.1.  Authentication Payload for KEM-based
                Authentication  . . . . . . . . . . . . . . . . . . .  16
-       6.3.2.  Authentication Announcement for KEM Authentication  .  16
-   7.  Interaction with Other IKEv2 Extensions . . . . . . . . . . .  17
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
-   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  17
-   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  18
-     10.1.  Normative References . . . . . . . . . . . . . . . . . .  18
-     10.2.  Informative References . . . . . . . . . . . . . . . . .  19
-   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  22
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  22
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  22
+       6.3.2.  Authentication Announcement for KEM Authentication  .  17
+       6.3.3.  Encrypted Certificate Payload . . . . . . . . . . . .  18
+   7.  Interaction with Other IKEv2 Extensions . . . . . . . . . . .  19
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  19
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  19
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  20
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  20
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  21
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  24
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  24
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  24
 
 1.  Introduction
 
@@ -108,10 +109,9 @@ Table of Contents
 
 
 
-
-Wang & Smyslov            Expires 20 April 2026                 [Page 2]
+Wang & Smyslov          Expires 3 September 2026                [Page 2]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
 1.2.  Introduction
@@ -135,19 +135,19 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    Motivated by the fact that ML-KEM [FIPS203] is much more efficient
    than ML-DSA [FIPS204], "KEM-based Authentication for TLS 1.3"
    [I-D.celi-wiggers-tls-authkem] [I-D.wiggers-tls-authkem-psk]
-   specifies how KEM can be used to achieve post-quantum secure
+   specifies how a KEM can be used to achieve post-quantum secure
    authentication for the TLS 1.3 protocol.  The basic idea is as
    follows: when one entity A receives the certified long term public
    key of another entity B, A can authenticate B by encapsulating a
    secret key k using B's KEM public key, and confirming that the
    communicating entity is indeed B if the entity can successfully
-   return the correct k to A.  The similar idea for TLS is presented in
+   return the correct k to A.  A similar idea for TLS is presented in
    [SSW20], followed by a number of research papers then.  Besides
    saving communication overhead and computational time, as pointed out
    in [I-D.celi-wiggers-tls-authkem], KEM-based authentication also
-   benefits to reduce implementation code size, as the code for PQ
-   signature may not need, and KEM-based authentication can re-use the
-   KEM code for ephemeral key establishment.
+   reduces implementation code size, as the code for PQ signature may
+   not be needed, and KEM-based authentication can re-use the KEM code
+   for ephemeral key establishment.
 
    This draft specifies how to use KEM-based authentication for the
    Internet Key Exchange Protocol Version 2 (IKEv2) [RFC7296].
@@ -165,18 +165,18 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
 
 
-Wang & Smyslov            Expires 20 April 2026                 [Page 3]
+Wang & Smyslov          Expires 3 September 2026                [Page 3]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
 3.  Key Encapsulation Mechanism and Digital Signature
 
-   Key encapsulation mechanism (KEM) is a kind of key exchange, which
-   allows one entity to encapsulate a secret key under a (longterm or
-   ephemeral) public key of another entity.  By following the definition
-   given in [I-D.ietf-ipsecme-ikev2-mlkem], a KEM consists of three
-   algorithms:
+   A key encapsulation mechanism (KEM) is a set of algorithms that
+   allows key exchange to be performed, which allows one entity to
+   encapsulate a secret key under a (longterm or ephemeral) public key
+   of another entity.  By following the definition given in
+   [I-D.ietf-ipsecme-ikev2-mlkem], a KEM consists of three algorithms:
 
    *  KeyGen(k) -> (pk, sk): A probabilistic key generation algorithm,
       which generates a public encapsulation key pk and a secret
@@ -221,9 +221,9 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
 
 
-Wang & Smyslov            Expires 20 April 2026                 [Page 4]
+Wang & Smyslov          Expires 3 September 2026                [Page 4]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
 4.  Comparison of ML-KEM and ML-DSA
@@ -232,11 +232,11 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    key, ciphertext and signature, and also the computational overhead of
    key generation, encapsulation, signing, decapsulation, and verifying.
 
-   First of all, to compare the communication overhead when using ML-DSA
-   and ML-KEM, data from Table 2 in [FIPS204] and Table 3 in [FIPS204]
-   are used to generate the following Table 1.  The results show the
-   comparison of keys and signature over ciphertext between ML-DSA and
-   ML-KEM.  Namely, for all corresponding security levels, the following
+   To compare the communication overhead when using ML-DSA and ML-KEM,
+   data from Table 2 in [FIPS204] and Table 3 in [FIPS204] are used to
+   generate the following Table 1.  The results show the comparison of
+   keys and signature over ciphertext between ML-DSA and ML-KEM.
+   Namely, for all corresponding security levels, the following
    statements can be concluded:
 
    *  The private key size of ML-DSA is about 1.5 times of the
@@ -277,9 +277,9 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
 
 
-Wang & Smyslov            Expires 20 April 2026                 [Page 5]
+Wang & Smyslov          Expires 3 September 2026                [Page 5]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
    Next, the computation overhead comparison will be given now.  In
@@ -310,9 +310,9 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
                                   ML-KEM
 
    By assuming that the computational comparison shown in Table 2
-   reasonably presents the performance difference of ML-KEM and ML-DSA
-   at the same platform with similar implementation techniques, for all
-   three corresponding security levels, the following statements can be
+   reasonably presents a performance difference of ML-KEM and ML-DSA on
+   the same platform with optimal implementations, for all three
+   corresponding security levels, the following statements can be
    derived:
 
    *  The private key generation time of ML-DSA is about 4 times of that
@@ -333,9 +333,9 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
 
 
-Wang & Smyslov            Expires 20 April 2026                 [Page 6]
+Wang & Smyslov          Expires 3 September 2026                [Page 6]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
    In the scenario of KEM-based authentication, both the private keys
@@ -384,19 +384,15 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
       key exchange combining traditional and post-quantum key exchange
       methods is required.
 
+   *  Using group Postquantum Preshared Key (PPK) [RFC9867] can
+      contribute to the identity hiding, thus it is RECOMMENDED to use.
 
 
 
-
-
-Wang & Smyslov            Expires 20 April 2026                 [Page 7]
+Wang & Smyslov          Expires 3 September 2026                [Page 7]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
-
-   *  Using group Postquantum Preshared Key (PPK)
-      [I-D.ietf-ipsecme-ikev2-qr-alt] can contribute to the identity
-      hiding, thus it is RECOMMENDED to use.
 
    *  The ability to authenticate the full protocol transcript
       [I-D.smyslov-ipsecme-ikev2-downgrade-prevention] protects peers
@@ -428,8 +424,8 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
    Peers can also negotiate other IKEv2 extensions during IKE_SA_INIT.
    Some of them are listed in Section 6.  In particular, the figures
-   below show the optional use of PPK [I-D.ietf-ipsecme-ikev2-qr-alt]
-   during KEM-based authentication.
+   below show the optional use of PPK [RFC9867] during KEM-based
+   authentication.
 
    Initiator                                                   Responder
    ---------------------------------------------------------------------
@@ -443,25 +439,27 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
                                                        [N(USE_PPK_INT),]
                                                           N(USE_AUTHKEM)
 
-
-
-Wang & Smyslov            Expires 20 April 2026                 [Page 8]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
-
                      Figure 1: The IKE_SA_INIT Exchange
+
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026                [Page 8]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
 
    Peers MUST ignore the USE_AUTHKEM notification in the message if it
    is not accompanied by the INTERMEDIATE_EXCHANGE_SUPPORTED
    notification.
 
-   If using the KEM-based authentication is mandatory for the responder
-   and the initiator did not propose it or failed to make a valid
-   proposal, then the responder MUST send the NO_PROPOSAL_CHOSEN
-   notification indicating that the proposed parameters are
-   unacceptable.  Otherwise the responder can continue establishing IKE
-   SA using other authentication method.
+   If using KEM-based authentication is mandatory for the responder and
+   the initiator did not propose it or failed to make a valid proposal,
+   then the responder MUST send the NO_PROPOSAL_CHOSEN notification
+   indicating that the proposed parameters are unacceptable.  Otherwise
+   the responder can continue establishing IKE SA using other
+   authentication method.
 
    If using the KEM-based authentication is mandatory for the initiator
    and it failed to negotiate it with the responder, then the initiator
@@ -501,15 +499,16 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
 
 
-Wang & Smyslov            Expires 20 April 2026                 [Page 9]
+
+
+Wang & Smyslov          Expires 3 September 2026                [Page 9]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
-   If the use of PPKs as defined in [I-D.ietf-ipsecme-ikev2-qr-alt] is
-   negotiated, then the IKE_INTERMEDIATE exchange negotiating the PPK to
-   use is performed then as defined in Section 3.1 of
-   [I-D.ietf-ipsecme-ikev2-qr-alt].
+   If the use of PPKs as defined in [RFC9867] is negotiated, then the
+   IKE_INTERMEDIATE exchange negotiating the PPK to use is performed
+   then as defined in Section 3.1 of [RFC9867].
 
    Initiator                                                   Responder
    ---------------------------------------------------------------------
@@ -519,15 +518,15 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
                          Figure 3: PPK Negotiation
 
    After this exchange the session keys are updated as defined in
-   Section 3.1.1 of [I-D.ietf-ipsecme-ikev2-qr-alt].
+   Section 3.1.1 of [RFC9867].
 
    If both additional key exchange(s) and the use of PPKs as defined in
-   [I-D.ietf-ipsecme-ikev2-qr-alt] are negotiated, then the last
-   additional key exchange MAY alternatively be combined with
-   negotiation the PPK in a single IKE_INTERMEDIATE exchange as shown in
-   Figure 3.  Note, that in many cases only one additional key exchange
-   will be negotiated (as a part of PQ/T hybrid key exchange), thus in
-   this case the last additional key exchange will also be the only one.
+   [RFC9867] are negotiated, then the last additional key exchange MAY
+   alternatively be combined with negotiating the PPK in a single
+   IKE_INTERMEDIATE exchange as shown in Figure 3.  Note, that in many
+   cases only one additional key exchange will be negotiated (as a part
+   of PQ/T hybrid key exchange), thus in this case the last additional
+   key exchange will also be the only one.
 
    Initiator                                                   Responder
    ---------------------------------------------------------------------
@@ -541,147 +540,195 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    If this combined IKE_INTERMEDIATE exchange takes place, then upon its
    completion session keys are updated twice - fist as defined in
    Section 2.2.2 of [RFC9370] and then, provided the peers negotiate the
-   PPK to use, as defined in Section 3.1.1 of
-   [I-D.ietf-ipsecme-ikev2-qr-alt].
+   PPK to use, as defined in Section 3.1.1 of [RFC9867].
 
-   Note, that while [I-D.ietf-ipsecme-ikev2-qr-alt] generally requires
-   that the PPK negotiation is performed in the last IKE_INTERMEDIATE
-   exchange right before the IKE_AUTH exchange, it also allows this
-   requirement to be overridden by other specification.  This document
-   specifically overrides this requirement by allowing the
-   IKE_INTERMEDIATE exchanges concerned with the KEM-based
-   authentication to take place between the negotiation of PPK and the
-   IKE_AUTH exchange.
+   Note, that while [RFC9867] generally requires that the PPK
+   negotiation is performed in the last IKE_INTERMEDIATE exchange right
+   before the IKE_AUTH exchange, it also allows this requirement to be
+   overridden by other specification.  This document specifically
+   overrides this requirement by allowing the IKE_INTERMEDIATE exchanges
+   concerned with the KEM-based authentication to take place between the
+   negotiation of PPK and the IKE_AUTH exchange.
 
 
 
 
 
-Wang & Smyslov            Expires 20 April 2026                [Page 10]
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 10]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
 6.1.2.2.  The IKE_INTERMEDIATE Exchanges for the KEM-based
           Authentication
 
-   The next IKE_INTERMEDIATE exchanges perform the necessary actions for
-   the KEM-based authentication.
+   The next two IKE_INTERMEDIATE exchanges perform the necessary actions
+   for the KEM-based authentication.
 
-   First, the peers exchange their KEM certificates.  The initiator can
-   optionally include the Certificate Request payload to help the
-   responder to select the right KEM certificate.  The initiator can
-   also indicate which KEMs it is willing to use for authentication by
-   including the SUPPORTED_AUTH_METHODS notification [RFC9593] in the
-   response.  In this case the notification SHOULD NOT contain
-   announcements with the Auth Method other than the "KEM
+   In the first exchange the responder sends its KEM certificate to the
+   initiator.  The initiator can optionally include the Certificate
+   Request payload in the request message to help the responder to
+   select the right KEM certificate.  The Certificate Request payload
+   can also be used to indicate which format(s) of certificate are
+   acceptable for the sender of this payload.  This is done by setting
+   the Cert Encoding field to appropriate value.  For KEM-based
+   authentication this field MUST be either "X.509 bundle" (new
+   certificate encoding defined in this document, it value is <TBA5 by
+   IANA>) or "Hash and URL of X.509 bundle" (value 13).  If both
+   encoding are acceptable, then two Certificate Request payloads MUST
+   be included (with possibly different list of CAs) each with its own
+   value in the Cert Encoding field.  Since the Certificate Request
+   payload is optional, its absence leaves the choice of the certificate
+   and its encoding on the certificate sender's discretion.  Note that
+   these rules are also applicable to the Certificate Request payload
+   sent by the responder in the IKE_SA_INIT exchange (see
+   Section 6.1.1).
+
+   The initiator can also indicate which KEMs it is willing to use for
+   authentication by including the SUPPORTED_AUTH_METHODS notification
+   [RFC9593] in the request.  In this case the notification SHOULD NOT
+   contain announcements with the Auth Method other than the "KEM
    Authentication" (<TBA1>).  The format of announcement is defined in
    Section 6.3.2.
 
-   The initiator's certificate and the responder's one MAY contain
-   public keys for different KEMs, provided that peers support these
-   KEMs, - there is no requirement that they are for the same KEM.
+   The responder sends its KEM certificate in the response.  Besides the
+   KEM certificate, additional intermediate signing certificates and
+   CRLs can be sent.  All these certificates and CRLs are packed into
+   the CertificateBundle ASN.1 structure defined in Section 3.6 of
+   [RFC7296].  The KEM certificate MUST be the only KEM certificate in
+   the bundle.  The bundle can either be present in the Certificate
+   payload (with the Cert Encoding field set to a new value "X.509
+   bundle") or provided by reference (with the Cert Encoding field set
+   to "Hash and URL of X.509 bundle").  If certificate bundle is
+   provided by reference, then a host can avoid downloading the peer's
+   certificates if it cached them from a previous connection.  Only one
+   Certificate payload MUST be present in the response.
 
-   Since KEM certificates can have significant size, peers MAY use hash-
-   and-URL certificate lookup (by using "Hash and URL of X.509
-   certificate" or "Hash and URL of X.509 bundle" certificate encoding).
-   In this case the CERT payload would contain the URL and the hash of
-   the certificate(s) as defined in Section 3.6 of [RFC7296].  The
-   advantage of this approach is that a host can avoid downloading the
-   peer's certificates if it cached this certificate from a previous
-   connection.  The hash of a certificate provided in the Certificate
-   payload is used to find the certificate in a cache in this case.
 
-   Besides the KEM certificate, additional intermediate signing
-   certificates can be sent.  The KEM certificate MUST be the first and
-   the only KEM certificate in the message.
+
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 11]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
 
    Initiator                                                   Responder
    ---------------------------------------------------------------------
-   HDR(IKE_INTERMEDIATE), SK {[CERTREQ,]
-   [N(SUPPORTED_AUTH_METHODS),] CERT}   --->
+   HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
+   [N(SUPPORTED_AUTH_METHODS)]}   --->
                                  <---   HDR(IKE_INTERMEDIATE), SK {CERT}
 
-                   Figure 5: Exchange of KEM Certificates
+              Figure 5: Obtaining Responder's KEM Certificate
 
    This exchange does not update the current session keys.
 
+   The initiator verifies the responder's certificate to make sure that
+   it is valid, properly signed by a certificate chain leaded to a
+   trusted CA, and that it is acceptable for responder authentication
+   based on the initiator's local policy.  The exact verification steps
+   are out of scope of this document, but generally should follow those
+   defined in [RFC5280].
+
+   Then the initiator starts the next IKE_INTERMEDIATE exchange.  In the
+   request message it sends the ciphertext CT_i, produced as a result of
+   encapsulation of a random value SS_i using the KEM public keys from
+   the responder's certificate.  CT_i is sent in a new status type
+   notification AUTHKEM_CT (with type <TBA3>).  The Protocol ID and SPI
+   Size fields are set to 0 (meaning no SPI is present).  The
+   notification data contains the ciphertext CT_i.
+
+   In the same request the initiator also sends its KEM certificate.
+   Besides the KEM certificate, additional intermediate signing
+   certificates and CRLs can be sent.  All these certificates and CRLs
+   are packed into the CertificateBundle ASN.1 structure defined in
+   Section 3.6 of [RFC7296].  The KEM certificate MUST be the only KEM
+   certificate in the bundle.  The bundle can either be present in the
+   Certificate payload (with the Cert Encoding field set to a new value
+   "X.509 bundle") or provided by reference (with the Cert Encoding
+   field set to "Hash and URL of X.509 bundle").  If certificate bundle
+   is provided by reference, then a host can avoid downloading the
+   peer's certificates if it cached them from a previous connection.
+
+   This content (either bundle or hash & URL) is sent in a new payload
+   Encrypted Certificate (with type <TBA0 by IANA>).  The content is
+   encrypted using key derived from SS_i.  The details of the
+   Certificate payload encryption are provided in Section 6.3.3.
+   Encryption provides protection of initiator's identity against active
+   attackers, since only a responder a responder with the private key
+   corresponding to the responder's certificate is able to decrypt the
+   initiator's KEM certificate.
 
 
 
 
 
 
-
-Wang & Smyslov            Expires 20 April 2026                [Page 11]
+Wang & Smyslov          Expires 3 September 2026               [Page 12]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
-   Once peers exchange their KEM certificates they verify each other's
-   certificate to make sure that it is valid, properly signed by a
-   certificate chain leaded to a trusted CA, and that it is acceptable
-   for peer authentication based on the local policy.  The exact
+      |  Note, that if the bundle is provided by reference and an
+      |  attacker can monitor the responder's network activity, then
+      |  this identity protection might not work.
+
+   Exactly one Encrypted Certificate payload MUST be present in the
+   message.
+
+   The responder decrypts the initiator's certificate, verifies it to
+   make sure that it is valid, properly signed by a certificate chain
+   leaded to a trusted CA, and that it is acceptable for initiator
+   authentication based on the responder's local policy.  The exact
    verification steps are out of scope of this document, but generally
    should follow those defined in [RFC5280].
 
-   The next IKE_INTERMEDIATE exchange is used to exchange the
-   ciphertexts CT_i and CT_r obtained as a result of encapsulation of
-   random values SS_i and SS_r using the long-term KEM public keys.  The
-   KEM public keys are extracted from the KEM certificates received in
-   the previous exchange.
+   The initiator's certificate and the responder's one, sent in the
+   previous exchange, MAY contain public keys for different KEMs,
+   provided that peers support these KEMs, - there is no requirement
+   that they are for the same KEM.
 
-   The peers send each other a new status type notification AUTHKEM_DATA
-   (with type <TBA3>).  The Protocol ID and SPI Size fields are set to 0
-   (meaning no SPI is present).  The Notification Data is a
-   concatenation of two values CT and SSCONF prepared by each peer,
-   where CT_i and SSCONF_i are prepared by the initiator, while CT_r and
-   SSCONF_r are prepared by the responder.  These values are computed as
-   follows ("x" is either "i" or "r"):
+   The responder then sends a response message containing the ciphertext
+   CT_r, produced as a result of encapsulation of a random value SS_r
+   using the KEM public keys from the initiator's certificate.  CT_r is
+   sent in the AUTHKEM_CT notification in the same manner as SS_i.
 
-   *  CT_x is a ciphertext obtained as a result of encapsulation of a
-      random value SS_x with a the long-term public key from the peer's
-      certificate.
-
-   *  SSCONF_x is computed as prf(SK_px, SS_x), where prf is the
-      negotiated PRF for this SA.
-
-   As a result, the data in the AUTHKEM_DATA notification sent by the
-   initiator is CT_i | SSCONF_i and the data in this notification sent
-   by the responder is CT_r | SSCONF_r.
+   The responder also includes a new status type notification
+   AUTHKEM_SSCONF (with type <TBA3>).  The Protocol ID and SPI Size
+   fields are set to 0 (meaning no SPI is present).  The notification
+   data is computed as prf(SK_pr, SS_r), where prf is the negotiated PRF
+   for this SA and SK_pr is from the current session keys (see
+   Section 3.3.1 of [RFC9242]).
 
    Initiator                                                   Responder
    ---------------------------------------------------------------------
-   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}   --->
-                      <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}
+   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_CT), ECERT}   --->
+                        <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_CT),
+                                                      N(AUTHKEM_SSCONF)}
 
-               Figure 6: Exchange of Encrypted Random Values
+      Figure 6: Obtaining Initiator's KEM Certificate and Exchange of
+                          Encrypted Random Values
 
-   Upon receiving the message each side performs the following steps:
-
-   1.  Splits the content of the AUTHKEM_DATA notification into CT and
-       SSCONF parts based on the known sizes of the ciphertext of the
-       used KEM algorithm and the output size of the negotiated PRF.
-
-   2.  Decrypts CT using the receiver's own private key corresponding to
-       its own KEM certificate, which was sent in the previous exchange
-       to the peer, and gets the SS value encapsulated by the peer.
-
+   Upon receiving the response message the initiator decapsulates the
+   received ciphertext CT_r and obtains the SS_r key.  Then the
+   initiator computes prf(SK_pr, SS_r) using the obtained SS_r and
+   verifies that the value matches the content of the AUTHKEM_SSCONF
+   notification.  This ensures that there are no mis-configurations and
+   the the received SS_r value is indeed the same that was encapsulated.
 
 
-Wang & Smyslov            Expires 20 April 2026                [Page 12]
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 13]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
-
-   3.  Computes peer's SSCONF value and checks whether it matches the
-       received SSCONF value.
-
-   If the computed and the received SSCONF values match, then the host
-   can be sure that it received exactly the same SS value as was sent by
-   its peer.  To complete authentication the host needs to prove this
-   fact to its peer, and to make sure that the peer also received
-   exactly the same SS value as it sent.
 
    Upon completion of this exchange the session keys are updated.  A new
    value of SKEYSEED is computed as:
@@ -722,14 +769,6 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    However, IKEv2 doesn't rely on the identities from certificates when
    performing authentication.  Instead, Identification payloads (IDi and
    IDr) are mandatory in the IKE_AUTH exchange and exactly they are
-
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 13]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
-
    included into the AUTH payload calculation.  The content of the IDi
    and IDr payload may differ from the identification information in the
    corresponding certificate, as stated in Section 3.5 of [RFC7296].
@@ -739,6 +778,14 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    This section is to be removed eventually.  It provides ideas for
    alternative design of the protocol.
 
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 14]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
+
    The presented sequence of exchanges requires two additional exchanges
    (namely IKE_INTERMEDIATE exchanges) for KEM-based authentication
    compared to signature-based authentication.  It is possible to only
@@ -746,12 +793,12 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    results in some degradation of security properties or leads to
    additional protocol complexity.  Note, that the amount of data
    exchanged over the wire would not changed, the different items would
-   just be combined in one message.  This, it turn, would increase size
-   of these messages that might not be desirable from reliable delivery
+   just be combined in one message.  This would increase the size of
+   these messages that might not be desirable from a reliable delivery
    point of view.
 
-6.2.1.  Alternative 1: Send Certificates Encrypted Only with the
-        IKE_SA_INIT Keys
+6.2.1.  Alternative 1: Send Responder Certificate with Protection Only
+        by the IKE_SA_INIT Keys
 
    It is possible to exchange certificates before all additional key
    exchanges (and optional negotiation of the PPK) are completed.  In
@@ -766,81 +813,63 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    Initiator                                                   Responder
    ---------------------------------------------------------------------
    HDR(IKE_INTERMEDIATE), SK {KEi(m),
-   (PPK_IDENTITY_KEY), [CERTREQ,]
-   [N(SUPPORTED_AUTH_METHODS),] CERT}   --->
+   (PPK_IDENTITY_KEY), [CERTREQ+,]
+   [N(SUPPORTED_AUTH_METHODS)]}   --->
                                <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
                                                    (PPK_IDENTITY), CERT}
 
           Figure 8: Last Additional Key Exchange Combined with PPK
-                  Negotiation and Exchange of Certificates
+                  Negotiation and Responder's Certificate
 
-   This design would decrease the level of identity hiding, since the
-   session keys used to protect the certificates in case of hybrid key
-   exchange could be cracked by an attacker using quantum computer.
+   This design would decrease the level of identity hiding for
+   responder, since the session keys used to protect the responder's
+   certificates in case of hybrid key exchange could be cracked by an
+   attacker using quantum computer.
 
 
 
 
-Wang & Smyslov            Expires 20 April 2026                [Page 14]
+
+
+
+
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 15]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
-   On the other hand, KEM-based authentication is generally more
-   succeptible to learning the identities of the peers by an attacker,
-   because the peers have to exchange their certificates before
-   authenticating each other, which makes it possible for the attacker
-   in the middle to learn them.
-
-6.2.2.  Alternative 2: Change the Order of Certificates and Use Double
-        Encryption
-
-   It is possible to get almost the same protection as in the original
-   design but still eliminating one IKE_INTERMEDIATE exchange by
-   complicating the protocol.
+6.2.2.  Alternative 2: Use "Future" Keys to protect Responder's
+        Certificate
 
    In this case the exchange shown in Figure 5 is also not needed.  The
-   responder sends its certificate first in the previous
-   IKE_INTERMEDIATE exchange.  Note, that this exchange contains the
-   last additional key exchange and optionally the PPK negotiation, thus
-   its messages are not yet protected with the session keys that would
-   result in this exchange - the new key are calculated only once the
-   exchange completes.  However, the responder can calculate the updated
-   keys before it sends the response message.  The idea is that the
-   responder calculates new session keys and use these "future" keys
-   (for the next exchange) to protect its certificate in the encrypted
-   payload, that itself is protected with the "current" session keys.
+   responder sends its certificate in the previous IKE_INTERMEDIATE
+   exchange using new Encrypted Certificate payload.  Note, that this
+   exchange contains the last additional key exchange and optionally the
+   PPK negotiation, thus its messages are not yet protected with the
+   session keys that would result in this exchange - the new keys are
+   calculated only once the exchange completes.  However, the responder
+   can calculate the updated keys before it sends the response message.
+   The idea is that the responder calculates new session keys and uses
+   these "future" keys (for the next exchange) to protect its
+   certificate in the Encrypted Certificate payload, that itself is
+   protected with the "current" session keys in the Encrypted payload.
+   The Encrypted Certificate payload is protected using keys derived
+   from the SK_d from the next exchange (see Section 6.3.3 for details).
 
    Initiator                                                   Responder
    ---------------------------------------------------------------------
    HDR(IKE_INTERMEDIATE), SK {KEi(m),
-   (PPK_IDENTITY_KEY), [CERTREQ,]
+   (PPK_IDENTITY_KEY), [CERTREQ+,]
    [N(SUPPORTED_AUTH_METHODS),]}   --->
                                <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
-                                 (PPK_IDENTITY), N(ENCYPTED_CERT)(cert)}
+                                                  (PPK_IDENTITY), ECERT}
 
           Figure 9: Last Additional Key Exchange Combined with PPK
-                  Negotiation and Responder's Certificate
-
-   Then the initiator sends its certificate in the exchange shown in
-   Figure 6.
-
-   Initiator                                                   Responder
-   ---------------------------------------------------------------------
-   HDR(IKE_INTERMEDIATE), SK {CERT, N(AUTHKEM_DATA)}   --->
-                      <---   HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_DATA)}
-
-        Figure 10: Initiator's Certificate and Exchange of Encrypted
-                               Random Values
-
-
-
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 15]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
+             Negotiation and Encrypted Responder's Certificate
 
    This sequence of exchanges allows certificates to be protected at the
    same level as in the original sequence of exchanges (in particular,
@@ -856,6 +885,18 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    [RFC7296].  In case of KEM-based authentication the Auth Method is
    set to "KEM Authentication" (<TBA1>).  The Authentication Data is
    computed as:
+
+
+
+
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 16]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
 
    For the initiator:
 
@@ -891,14 +932,7 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    |                                                               |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 16]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
-
-                 Figure 11: Supported Authentication Method
+                 Figure 10: Supported Authentication Method
 
    *  Length - Length of the announcement in octets, must be greater
       than 3.
@@ -913,11 +947,78 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
       (see Section 4.1.1.2 of [RFC5280]), encoded using distinguished
       encoding rules (DER) [X.690].
 
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 17]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
+
    For "KEM Authentication" announcement the AlgorithmIdentifier MUST
    contain identifier of a KEM algorithm (and not, for example, of a
    signature algorithm).  Identifiers for KEM algorithms are specified
    in the corresponding documents for these algorithms (e.g., for ML-KEM
    see [I-D.ietf-lamps-kyber-certificates]).
+
+6.3.3.  Encrypted Certificate Payload
+
+   The Encrypted Certificate payload, denoted ECERT in this document,
+   provides a means to transport certificates or other authentication-
+   related information in encrypted form.  The payload type for the
+   Encrypted Certificate payload is <TBA0 by IANA>.  This payload is
+   semantically equivalent to the Certificate payload (defined in
+   Section 3.6 of [RFC7296], but it provides a means to encrypt the
+   certificate information.  For this purpose the format of the
+   Encrypted Certificate payload mirrors the format of the Encrypted
+   payload (defined in Section 3.14 of [RFC7296]) with the difference,
+   that it contains not the encrypted IKE payloads, but the encrypted
+   Cert Encoding and Certificate Data as defined in Section 3.6 of
+   [RFC7296].
+
+                           1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      | Next Payload  |C|  RESERVED   |         Payload Length        |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      ~                     Initialization Vector                     ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               |
+      ~         Encrypted Cert Encoding and Certificate Data          ~
+      |                                                               |
+      |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |               |             Padding (0-255 octets)            |
+      +-+-+-+-+-+-+-+-+                               +-+-+-+-+-+-+-+-+
+      |                                               |  Pad Length   |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      ~                    Integrity Checksum Data                    ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+              Figure 11: Encrypted Certificate Payload Format
+
+   Initialization Vector, Padding, Pad Length and Integrity Checksum
+   Data are defined in Section 3.14 of [RFC7296].
+
+   This document restricts the possible values of Cert Encoding in the
+   ECERT payload to either "X.509 bundle" (<TBA5 by IANA>) or "Hash and
+   URL of X.509 bundle" (13).
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 18]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
+
+   The payload is encrypted and authenticated using the same encryption
+   and integrity algorithms as were negotiated for IKE SA.  The
+   encryption and authentication keys are calculated as follows:
+
+     EC_a | EC_e = prf+ ( SK_d, K )
+
+   where SK_d is from the current session keys (see Section 3.3.1 of
+   [RFC9242]) and K is the key to protect the certificate data (like
+   SS_i in Section 6.1.2.2).
 
 7.  Interaction with Other IKEv2 Extensions
 
@@ -940,8 +1041,18 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    registries "Internet Key Exchange Version 2 (IKEv2) Parameters"
    [IANA-IKEv2]:
 
-   1.  Define a new authentication method "KEM Authentication" in the
-       "IKEv2 Authentication Method" registry:
+   1.  Define a new payload type in the "IKEv2 Payload Types" registry:
+
+                 +=======+=======================+==========+
+                 | Value |   Next Payload Type   | Notation |
+                 +=======+=======================+==========+
+                 |  TBA0 | Encrypted Certificate |  ECERT   |
+                 +-------+-----------------------+----------+
+
+                                   Table 3
+
+   2.  Define a new authentication method in the "IKEv2 Authentication
+       Method" registry:
 
 
 
@@ -949,9 +1060,10 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
 
 
 
-Wang & Smyslov            Expires 20 April 2026                [Page 17]
+
+Wang & Smyslov          Expires 3 September 2026               [Page 19]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
 
                     +=======+=============================+
@@ -960,9 +1072,9 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
                     |  TBA1 |      KEM Authentication     |
                     +-------+-----------------------------+
 
-                                    Table 3
+                                    Table 4
 
-   2.  Define two new status type notifications in the "IKEv2 Notify
+   3.  Define three new status type notifications in the "IKEv2 Notify
        Message Status Types" registry:
 
                     +=======+============================+
@@ -970,18 +1082,30 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
                     +=======+============================+
                     |  TBA2 |        USE_AUTHKEM         |
                     +-------+----------------------------+
-                    |  TBA3 |        AUTHKEM_DATA        |
+                    |  TBA3 |         AUTHKEM_CT         |
+                    +-------+----------------------------+
+                    |  TBA4 |       AUTHKEM_SSCONF       |
                     +-------+----------------------------+
 
-                                   Table 4
+                                   Table 5
+
+   4.  Define a new certificate encoding in the "IKEv2 Certificate
+       Encodings" registry:
+
+                       +=======+======================+
+                       | Value | Certificate Encoding |
+                       +=======+======================+
+                       |  TBA5 |     X.509 bundle     |
+                       +-------+----------------------+
+
+                                   Table 6
 
 10.  References
 
 10.1.  Normative References
 
    [IANA-IKEv2]
-              "Internet Key Exchange Version 2 (IKEv2) Parameters", the
-              Internet Assigned Numbers Authority (IANA). ,
+              "Internet Key Exchange Version 2 (IKEv2) Parameters",
               <https://www.iana.org/assignments/ikev2-parameters/
               ikev2-parameters.xhtml>.
 
@@ -989,6 +1113,14 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/info/rfc2119>.
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 20]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
 
    [RFC7296]  Kaufman, C., Hoffman, P., Nir, Y., Eronen, P., and T.
               Kivinen, "Internet Key Exchange Protocol Version 2
@@ -998,17 +1130,6 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
-
-
-
-
-
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 18]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
 
    [RFC9242]  Smyslov, V., "Intermediate Exchange in the Internet Key
               Exchange Protocol Version 2 (IKEv2)", RFC 9242,
@@ -1049,55 +1170,42 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
               Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
               Sullivan, "KEM-based Authentication for TLS 1.3", Work in
               Progress, Internet-Draft, draft-celi-wiggers-tls-authkem-
-              05, 22 April 2025, <https://datatracker.ietf.org/doc/html/
-              draft-celi-wiggers-tls-authkem-05>.
 
 
 
-
-
-
-
-
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 19]
+Wang & Smyslov          Expires 3 September 2026               [Page 21]
 
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
 
+
+              06, 4 November 2025,
+              <https://datatracker.ietf.org/doc/html/draft-celi-wiggers-
+              tls-authkem-06>.
 
    [I-D.hu-ipsecme-pqt-hybrid-auth]
               Hu, J., Morioka, Y., and G. WANG, "Post-Quantum
               Traditional (PQ/T) Hybrid PKI Authentication in the
               Internet Key Exchange Version 2 (IKEv2)", Work in
               Progress, Internet-Draft, draft-hu-ipsecme-pqt-hybrid-
-              auth-02, 1 May 2025,
+              auth-03, 1 November 2025,
               <https://datatracker.ietf.org/doc/html/draft-hu-ipsecme-
-              pqt-hybrid-auth-02>.
+              pqt-hybrid-auth-03>.
 
    [I-D.ietf-ipsecme-ikev2-mlkem]
-              Kampanakis, P., "Post-quantum Hybrid Key Exchange with ML-
-              KEM in the Internet Key Exchange Protocol Version 2
-              (IKEv2)", Work in Progress, Internet-Draft, draft-ietf-
-              ipsecme-ikev2-mlkem-03, 29 September 2025,
+              Kampanakis, P., "Post-quantum Key Exchange with ML-KEM in
+              the Internet Key Exchange Protocol Version 2 (IKEv2)",
+              Work in Progress, Internet-Draft, draft-ietf-ipsecme-
+              ikev2-mlkem-04, 26 February 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
-              ikev2-mlkem-03>.
+              ikev2-mlkem-04>.
 
    [I-D.ietf-ipsecme-ikev2-pqc-auth]
               Reddy.K, T., Smyslov, V., and S. Fluhrer, "Signature
               Authentication in the Internet Key Exchange Version 2
               (IKEv2) using PQC", Work in Progress, Internet-Draft,
-              draft-ietf-ipsecme-ikev2-pqc-auth-04, 5 October 2025,
+              draft-ietf-ipsecme-ikev2-pqc-auth-06, 20 October 2025,
               <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
-              ikev2-pqc-auth-04>.
-
-   [I-D.ietf-ipsecme-ikev2-qr-alt]
-              Smyslov, V., "Mixing Preshared Keys in the
-              IKE_INTERMEDIATE and in the CREATE_CHILD_SA Exchanges of
-              IKEv2 for Post-quantum Security", Work in Progress,
-              Internet-Draft, draft-ietf-ipsecme-ikev2-qr-alt-10, 23 May
-              2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
-              ipsecme-ikev2-qr-alt-10>.
+              ikev2-pqc-auth-06>.
 
    [I-D.ietf-lamps-kyber-certificates]
               Turner, S., Kampanakis, P., Massimo, J., and B.
@@ -1115,16 +1223,17 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
               2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
               pquip-hybrid-signature-spectrums-07>.
 
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 20]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
-
    [I-D.smyslov-ipsecme-ikev2-downgrade-prevention]
               Smyslov, V. and C. Patton, "Prevention Downgrade Attacks
               on the Internet Key Exchange Protocol Version 2 (IKEv2)",
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 22]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
+
               Work in Progress, Internet-Draft, draft-smyslov-ipsecme-
               ikev2-downgrade-prevention-02, 28 August 2025,
               <https://datatracker.ietf.org/doc/html/draft-smyslov-
@@ -1134,9 +1243,9 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
               Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
               Sullivan, "KEM-based pre-shared-key handshakes for TLS
               1.3", Work in Progress, Internet-Draft, draft-wiggers-tls-
-              authkem-psk-03, 22 April 2025,
+              authkem-psk-04, 4 November 2025,
               <https://datatracker.ietf.org/doc/html/draft-wiggers-tls-
-              authkem-psk-03>.
+              authkem-psk-04>.
 
    [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
               Housley, R., and W. Polk, "Internet X.509 Public Key
@@ -1160,10 +1269,26 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
               RFC 9593, DOI 10.17487/RFC9593, July 2024,
               <https://www.rfc-editor.org/info/rfc9593>.
 
+   [RFC9867]  Smyslov, V., "Mixing Preshared Keys in the
+              IKE_INTERMEDIATE and CREATE_CHILD_SA Exchanges of the
+              Internet Key Exchange Protocol Version 2 (IKEv2) for Post-
+              Quantum Security", RFC 9867, DOI 10.17487/RFC9867,
+              November 2025, <https://www.rfc-editor.org/info/rfc9867>.
+
    [SSW20]    Schwabe, P., Stebila, D., and T. Wiggers, "Post-quantum
               TLS without handshake signatures", In the Proceedings of
               ACM CCS 2020, pages 1461–1480. ACM
               Press. doi:10.1145/3372297.3423350., November 2020.
+
+
+
+
+
+
+Wang & Smyslov          Expires 3 September 2026               [Page 23]
+
+Internet-Draft     KEM-based Authentication for IKEv2         March 2026
+
 
    [X.690]    ITU-T, "Information Technology - ASN.1 encoding rules:
               Specification of Basic Encoding Rules (BER), Canonical
@@ -1171,16 +1296,10 @@ Internet-Draft     KEM-based Authentication for IKEv2       October 2025
               (DER)", ISO/IEC 8825-1:2021 (E), ITU-T Recommendation
               X.690, February 2021.
 
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 21]
-
-Internet-Draft     KEM-based Authentication for IKEv2       October 2025
-
-
 Acknowledgements
 
-   To be added later.
+   Thom Wiggers shared an idea to provide identity protection of one of
+   the peers against active attackers.
 
 Contributors
 
@@ -1222,11 +1341,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-Wang & Smyslov            Expires 20 April 2026                [Page 22]
+Wang & Smyslov          Expires 3 September 2026               [Page 24]
