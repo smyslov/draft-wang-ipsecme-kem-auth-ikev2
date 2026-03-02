@@ -165,12 +165,12 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 
     <t> Motivated by the fact that ML-KEM <xref target="FIPS203"></xref> is much more efficient than ML-DSA <xref target="FIPS204"></xref>, 
     "KEM-based Authentication for TLS 1.3" <xref target="I-D.celi-wiggers-tls-authkem"></xref> <xref target="I-D.wiggers-tls-authkem-psk"></xref> 
-    specifies how KEM can be used to achieve post-quantum secure authentication for the TLS 1.3 protocol. The basic idea is as follows: 
+    specifies how a KEM can be used to achieve post-quantum secure authentication for the TLS 1.3 protocol. The basic idea is as follows: 
     when one entity A receives the certified long term public key of another entity B, A can authenticate B by encapsulating a secret key k 
     using B's KEM public key, and confirming that the communicating entity is indeed B if the entity can successfully return the correct k to A. 
-    The similar idea for TLS is presented in  <xref target="SSW20"></xref>, followed by a number of research papers then. 
+    A similar idea for TLS is presented in  <xref target="SSW20"></xref>, followed by a number of research papers then. 
     Besides saving communication overhead and computational time, as pointed out in <xref target="I-D.celi-wiggers-tls-authkem"></xref>, 
-    KEM-based authentication also benefits to reduce implementation code size, as the code for PQ signature may not need, and KEM-based authentication 
+    KEM-based authentication also reduces implementation code size, as the code for PQ signature may not be needed, and KEM-based authentication 
     can re-use the KEM code for ephemeral key establishment. </t>
     
     <t> This draft specifies how to use KEM-based authentication for the Internet Key Exchange Protocol Version 2 (IKEv2) <xref target="RFC7296"> </xref>. 
@@ -195,7 +195,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 	  
 <section>  <name> Key Encapsulation Mechanism and Digital Signature</name>
     
-	<t> Key encapsulation mechanism (KEM) is a kind of key exchange, which allows one entity to encapsulate a secret key under a 
+	<t> A key encapsulation mechanism (KEM) is a set of algorithms that allows key exchange to be performed, which allows one entity to encapsulate a secret key under a 
     (longterm or ephemeral) public key of another entity. By following the definition given in <xref target="I-D.ietf-ipsecme-ikev2-mlkem"></xref>, 
     a KEM consists of three algorithms:
     </t>
@@ -235,7 +235,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 	  <t> This section compares ML-KEM and ML-DSA, with respect to the sizes of key, ciphertext and signature, and also the computational 
       overhead of key generation, encapsulation, signing, decapsulation, and verifying. </t>
 	  
-	  <t> First of all, to compare the communication overhead when using ML-DSA and ML-KEM, data from Table 2 in <xref target="FIPS204"></xref> and 
+	  <t> To compare the communication overhead when using ML-DSA and ML-KEM, data from Table 2 in <xref target="FIPS204"></xref> and 
       Table 3 in <xref target="FIPS204"></xref> are used to generate the following <xref target="size_comp" />. The results show the comparison 
       of keys and signature over ciphertext between ML-DSA and ML-KEM. Namely, for all corresponding security levels, the following statements can be concluded: </t>
 	  
@@ -322,8 +322,8 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         </tbody>
     </table>
 
-    <t> By assuming that the computational comparison shown in <xref target="computation_comp" /> reasonably presents the performance difference 
-    of ML-KEM and ML-DSA at the same platform with similar implementation techniques, for all three corresponding security levels, 
+    <t> By assuming that the computational comparison shown in <xref target="computation_comp" /> reasonably presents a performance difference 
+    of ML-KEM and ML-DSA on the same platform with optimal implementations, for all three corresponding security levels, 
     the following statements can be derived: </t>
 
     <ul>
@@ -458,7 +458,7 @@ N(USE_AUTHKEM)
             by the INTERMEDIATE_EXCHANGE_SUPPORTED notification.
             </t>
 
-            <t> If using the KEM-based authentication is mandatory for the responder and the initiator did not propose
+            <t> If using KEM-based authentication is mandatory for the responder and the initiator did not propose
             it or failed to make a valid proposal, then the responder <bcp14>MUST</bcp14> send the NO_PROPOSAL_CHOSEN notification
             indicating that the proposed parameters are unacceptable.
             Otherwise the responder can continue establishing IKE SA using other authentication method.
@@ -519,7 +519,7 @@ HDR(IKE_INTERMEDIATE), SK {PPK_IDENTITY_KEY)}   --->
                 </t>
 
                 <t> If both additional key exchange(s) and the use of PPKs as defined in <xref target="RFC9867" /> are negotiated,
-                then the last additional key exchange <bcp14>MAY</bcp14> alternatively be combined with negotiation the PPK 
+                then the last additional key exchange <bcp14>MAY</bcp14> alternatively be combined with negotiating the PPK 
                 in a single IKE_INTERMEDIATE exchange as shown in <xref target="fig_intermediate_ppk" />. Note, that in many cases only one
                 additional key exchange will be negotiated (as a part of PQ/T hybrid key exchange), thus 
                 in this case the last additional key exchange will also be the only one.
@@ -625,8 +625,9 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
                 <t> This content (either bundle or hash &amp; URL) is sent in a new payload Encrypted Certificate 
                 (with type &lt;TBA0 by IANA&gt;). The content is encrypted using key derived from SS_i.
                 The details of the Certificate payload encryption are provided in <xref target="encryptedcert" />.
-                Encryption provides protection of initiator's identity against active attackers, since only the responder
-                is able to decrypt initiator's KEM certificate. 
+                Encryption provides protection of initiator's identity against active attackers, since only a responder
+                a responder with the private key corresponding to the responder's certificate is able to decrypt the 
+                initiator's KEM certificate. 
                 </t>
 
                 <aside>
@@ -654,7 +655,7 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
                 for different KEMs, provided that peers support these KEMs, - there is no requirement that they are for the same KEM.
                 </t>
 
-                <t> The respnder then sends a response message containing the ciphertext CT_r, produced as a result 
+                <t> The responder then sends a response message containing the ciphertext CT_r, produced as a result 
                 of encapsulation of a random value SS_r using the KEM public keys from the initiator's certificate. CT_r is sent in the
                 AUTHKEM_CT notification in the same manner as SS_i.
                 </t>
@@ -677,8 +678,8 @@ HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_CT), ECERT}   --->
 
                 <t> Upon receiving the response message the initiator decapsulates the received ciphertext CT_r and obtains
                 the SS_r key. Then the initiator computes prf(SK_pr, SS_r) using the obtained SS_r and verifies
-                that the value matches the content of the AUTHKEM_SSCONF notification. This ensures that there is no
-                any mis-configurationa and the the received SS_r value is indeed the same that was encapsulated.
+                that the value matches the content of the AUTHKEM_SSCONF notification. This ensures that there are no
+                mis-configurations and the the received SS_r value is indeed the same that was encapsulated.
                 </t>
 
                 <t> Upon completion of this exchange the session keys are updated. A new value of SKEYSEED is computed as:
@@ -753,8 +754,8 @@ AUTH, SAi2, TSi, TSr}   --->
             only have one additional IKE_INTERMEDIATE exchange, but this either results in some degradation
             of security properties or leads to additional protocol complexity. Note, that the amount
             of data exchanged over the wire would not changed, the different items would just
-            be combined in one message. This, it turn, would increase size of these messages that might
-            not be desirable from reliable delivery point of view.
+            be combined in one message. This would increase the size of these messages that might
+            not be desirable from a reliable delivery point of view.
             </t>
 
             <section anchor="alternative_1" title="Alternative 1: Send Responder Certificate with Protection Only by the IKE_SA_INIT Keys">
@@ -790,9 +791,9 @@ HDR(IKE_INTERMEDIATE), SK {KEi(m),
                 The responder sends its certificate in the previous IKE_INTERMEDIATE exchange using new Encrypted Certificate payload.
                 Note, that this exchange contains the last additional key exchange and optionally the PPK negotiation,
                 thus its messages are not yet protected with the session keys that would result in this exchange - 
-                the new key are calculated only once the exchange completes. However, the responder can 
+                the new keys are calculated only once the exchange completes. However, the responder can 
                 calculate the updated keys before it sends the response message. The idea is that 
-                the responder calculates new session keys and use these "future" keys (for the next exchange) 
+                the responder calculates new session keys and uses these "future" keys (for the next exchange) 
                 to protect its certificate in the Encrypted Certificate payload, 
                 that itself is protected with the "current" session keys in the Encrypted payload.
                 The Encrypted Certificate payload is protected using keys derived from the SK_d from the next exchange 
@@ -910,7 +911,7 @@ For the responder:
             means to transport certificates or other authentication-related
             information in encrypted form. The payload type for the Encrypted Certificate payload is &lt;TBA0 by IANA&gt;.
             This payload is semantically equivalent to the Certificate payload (defined in Section 3.6 of <xref target="RFC7296" />, 
-            but it provides means to encrypt the certificate information. For this purpose the format of the Encrypted Certificate payload 
+            but it provides a means to encrypt the certificate information. For this purpose the format of the Encrypted Certificate payload 
             mirrors the format of the Encrypted payload (defined in Section 3.14 of <xref target="RFC7296" />) with the difference,
             that it contains not the encrypted IKE payloads, but the encrypted Cert Encoding and Certificate Data
             as defined in Section 3.6 of <xref target="RFC7296" />.
