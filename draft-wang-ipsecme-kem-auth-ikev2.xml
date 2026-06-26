@@ -25,7 +25,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 <rfc
   xmlns:xi="http://www.w3.org/2001/XInclude"
   category="std"
-  docName="draft-wang-ipsecme-kem-auth-ikev2-03"
+  docName="draft-wang-ipsecme-kem-auth-ikev2-04"
   ipr="trust200902"
   obsoletes=""
   updates=""
@@ -46,7 +46,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 <title abbrev="KEM-based Authentication for IKEv2"> KEM-based Authentication for IKEv2 with Post-quantum Security </title>
 <!--  [REPLACE/DELETE] abbrev. The abbreviated title is required if the full title is longer than 39 characters -->
 
-<seriesInfo name="Internet-Draft" value="draft-wang-ipsecme-kem-auth-ikev2-03"/>
+<seriesInfo name="Internet-Draft" value="draft-wang-ipsecme-kem-auth-ikev2-04"/>
    
     <author fullname="Guilin Wang" initials="G." role="editor" surname="Wang">
       <!-- [CHECK]
@@ -412,10 +412,10 @@ Have a section that is just examples of what is new in v3 (such as new table fea
  
  <!-- RFC 9593: If these payloads are sent, they MUST be identical to the IDi/IDr payloads sent later in the IKE_AUTH request -->
 
-        <section anchor="ike_sa_init" title="The IKE_SA_INIT Exchange">
+        <section anchor="ike_sa_init" title="IKE_SA_INIT Exchange">
 
             <t> The initiator wishing to use the KEM-based authentication indicates this to the responder
-            by including a new status type notification USE_AUTHKEM (with type &lt;TBA2&gt;) into the IKE_SA_INIT request message.
+            by including a new status type notification USE_AUTHKEM (with type &lt;TBA2&gt; by IANA) into the IKE_SA_INIT request message.
             This notification has the Protocol ID and SPI Size both set to 0 (meaning no SPI is present), and its notification data is empty.
             To be able to use the KEM-based authentication the initiator <bcp14>MUST</bcp14> also include
             the INTERMEDIATE_EXCHANGE_SUPPORTED notification.
@@ -429,7 +429,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
             indicate which KEMs it is willing to use for authentication by including
             the SUPPORTED_AUTH_METHODS notification <xref target="RFC9593" /> in the response.
             In this case the notification <bcp14>SHOULD NOT</bcp14> contain announcements
-            with the Auth Method other than a newly defined "KEM-based Authentication" (&lt;TBA1&gt;).
+            with the Auth Method other than a newly defined "KEM-based Authentication" (&lt;TBA1&gt; by IANA).
             The format of announcement is defined in <xref target="announcement" />.
             </t>
 
@@ -474,7 +474,7 @@ N(USE_AUTHKEM)
             </t>
         </section>
 
-        <section anchor="ike_intermediate" title="The IKE_INTERMEDIATE Exchanges">
+        <section anchor="ike_intermediate" title="IKE_INTERMEDIATE Exchanges">
             <t> Once the KEM-based authentication is negotiated in IKE_SA_INIT, a series of the
             IKE_INTERMEDIATE exchanges takes place. These exchanges can be classified as those
             for the purpose of the KEM-based authentication and those for other purposes.
@@ -482,7 +482,7 @@ N(USE_AUTHKEM)
             other IKE_INTERMEDIATE exchanges, so that they take place right before the IKE_AUTH exchange.
             </t>
 
-            <section anchor="ike_intermediate_no_pqake" title="The IKE_INTERMEDIATE Exchanges for Other Purposes">
+            <section anchor="ike_intermediate_no_pqake" title="IKE_INTERMEDIATE Exchanges for Purposes Other than KEM-based Authentication">
 
                 <t> First, if multiple key exchanges were negotiated, then one or more IKE_INTERMEDIATE exchanges 
                 are performed, right after the IKE_SA_INIT exchange, as defined in <xref target="RFC9370" />.
@@ -550,13 +550,18 @@ HDR(IKE_INTERMEDIATE), SK {KEi(m),
                 </t>
             </section>
 
-            <section anchor="ike_intermediate_pqake" title="The IKE_INTERMEDIATE Exchanges for the KEM-based Authentication">
+            <section anchor="ike_intermediate_pqake" title="IKE_INTERMEDIATE Exchanges for KEM-based Authentication">
 
-                <t> The next two IKE_INTERMEDIATE exchanges perform the necessary actions for the KEM-based authentication.
+                <t> KEM-based authentication requires two exchanges, but the first of them is usually combined with the last 
+                IKE_INTERMEDIATE exchange performed for other purposes (see <xref target="fig_intermediate_addke" />, 
+                <xref target="fig_intermediate_ppk" />, and <xref target="fig_intermediate_addke_ppk" />), so that 
+                only one additional IKE_INTERMEDIATE exchange takes place in this case. If no IKE_INTERMEDIATE
+                exchanges preceed, then two such exchanges are needed for KEM-based authentication.
                 </t>
 
-                <t> In the first exchange the responder sends its KEM certificate to the initiator.
-                The initiator can optionally include the Certificate Request payload in the request message 
+                <t> In the first exchange (which is combined with the preceeding IKE_INTERMEDIATE exchange, if any) 
+                the responder sends its KEM certificate to the initiator.
+                The initiator can optionally include Certificate Request payloads in the request message 
                 to help the responder to select the right KEM certificate. The Certificate Request payload
                 can also be used to indicate which format(s) of certificate are acceptable for the sender
                 of this payload. This is done by setting the Cert Encoding field to appropriate value.
@@ -573,31 +578,59 @@ HDR(IKE_INTERMEDIATE), SK {KEi(m),
                 <t> The initiator can also indicate which KEMs it is willing to use for authentication by including
                 the SUPPORTED_AUTH_METHODS notification <xref target="RFC9593" /> in the request.
                 In this case the notification <bcp14>SHOULD NOT</bcp14> contain announcements
-                with the Auth Method other than the  "KEM Authentication" (&lt;TBA1&gt;).
+                with the Auth Method other than the  "KEM Authentication" (&lt;TBA1&gt; by IANA).
                 The format of announcement is defined in <xref target="announcement" />.
                 </t>
 
-                <t> The responder sends its KEM certificate in the response. Besides the KEM certificate, additional 
-                intermediate signing certificates and CRLs can be sent. All these certificates and CRLs are packed into
+                <t> The responder provides its KEM certificate in the response. Besides the KEM certificate, additional 
+                intermediate signing certificates and CRLs can be provided. All these certificates and CRLs are packed into
                 the CertificateBundle ASN.1 structure defined in Section 3.6 of <xref target="RFC7296" />.
                 The KEM certificate <bcp14>MUST</bcp14> be the only KEM certificate in the bundle.
-                The bundle can either be present in the Certificate payload (with the Cert Encoding field set to a new value
-                "X.509 bundle") or provided by reference (with the Cert Encoding field set to "Hash and URL of X.509 bundle").
+                </t>
+
+                <t> The certificate bundle can either be sent directly in the response or be provided by a reference using Hash and URL syntax.
+                In both cases this content (either bundle or hash and URL) is sent in a new payload "Encrypted Certificate" 
+                (with type &lt;TBA0 by IANA&gt;), denoted as ECERT below. The content is encrypted using key 
+                derived from the SK_d for the next exchange (see <xref target="encryptedcert" /> for details).
+                </t>
+
+                <aside>
+                    <t> Note that while the next exchange is not started yet, the responder can already calculate the session keys for it 
+                    and can uses these "future" keys (purposed for the next exchange) to encrypt the content of the Encrypted Certificate payload, 
+                    that itself will be protected with the "current" session keys in the Encrypted payload.
+                    </t>
+                </aside>
+
+                <t> If the certificate bundle is sent inband, then the Cert Encoding field in the Encrypted Certificate payload is set to 
+                a new value "X.509 bundle", otherwise it is set to "Hash and URL of X.509 bundle".
                 If certificate bundle is provided by reference, then a host can avoid downloading the peer's certificates 
-                if it cached them from a previous connection. Only one Certificate payload <bcp14>MUST</bcp14> be present in the response.
+                if it cached them from a previous connection.
+                </t>
+
+                <t> Exactly one Encrypted Certificate payload <bcp14>MUST</bcp14> be present in the response.
+                </t>
+
+                <t> Since this exchange can be combined with the preceeding IKE_INTERMEDIATE exchange,
+                we use notation "..." to indicate payloads for the purposes other than
+                KEM-based authentication. In case of no preceeding IKE_INTERMEDIATE exchanges, 
+                no payloads for other purposes are present in this exchange. 
                 </t>
 
                 <figure anchor="fig_intermediate_cert" title="Obtaining Responder's KEM Certificate">
                 <artwork><![CDATA[
 Initiator                                                   Responder
 ---------------------------------------------------------------------
-HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
+HDR(IKE_INTERMEDIATE), SK {... [CERTREQ+,]
 [N(SUPPORTED_AUTH_METHODS)]}   --->
-                              <---   HDR(IKE_INTERMEDIATE), SK {CERT}
+                         <---   HDR(IKE_INTERMEDIATE), SK {... ECERT}
                 ]]></artwork> 
                 </figure>
 
-                <t> This exchange does not update the current session keys.
+                <t> Whether this exchange updates the current session keys or hot depends on the 
+                purpose of the preceeding exchange. In particular, in case of <xref target="fig_intermediate_addke" />, 
+                <xref target="fig_intermediate_ppk" />, and <xref target="fig_intermediate_addke_ppk" />), the keys are updated
+                as the result of those exchanges. If this exchange is not combined with other IKE_INTERMEDIATE exchanges,
+                then it does not update the current session keys.
                 </t>
 
                 <t> The initiator verifies the responder's certificate to make sure that it is valid, 
@@ -608,7 +641,7 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
 
                 <t> Then the initiator starts the next IKE_INTERMEDIATE exchange. In the request message it sends the ciphertext CT_i, produced as a result 
                 of encapsulation of a random value SS_i using the KEM public keys from the responder's certificate. CT_i is sent in a new status type 
-                notification AUTHKEM_CT (with type &lt;TBA3&gt;). The Protocol ID and SPI Size fields are set to 0 (meaning no SPI is present). 
+                notification AUTHKEM_CT (with type &lt;TBA3&gt; by IANA). The Protocol ID and SPI Size fields are set to 0 (meaning no SPI is present). 
                 The notification data contains the ciphertext CT_i.
                 </t>
 
@@ -616,16 +649,13 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
                 intermediate signing certificates and CRLs can be sent. All these certificates and CRLs are packed into
                 the CertificateBundle ASN.1 structure defined in Section 3.6 of <xref target="RFC7296" />.
                 The KEM certificate <bcp14>MUST</bcp14> be the only KEM certificate in the bundle.
-                The bundle can either be present in the Certificate payload (with the Cert Encoding field set to a new value
-                "X.509 bundle") or provided by reference (with the Cert Encoding field set to "Hash and URL of X.509 bundle").
-                If certificate bundle is provided by reference, then a host can avoid downloading the peer's certificates 
-                if it cached them from a previous connection. 
+                The bundle can either be present in the message or be provided by reference 
+                In both cases this content (either bundle or hash and URL) is sent in the "Encrypted Certificate" payload. 
+                The content is encrypted using key derived from SS_i. The details of the Certificate payload encryption 
+                are provided in <xref target="encryptedcert" />.
                 </t>
 
-                <t> This content (either bundle or hash &amp; URL) is sent in a new payload Encrypted Certificate 
-                (with type &lt;TBA0 by IANA&gt;). The content is encrypted using key derived from SS_i.
-                The details of the Certificate payload encryption are provided in <xref target="encryptedcert" />.
-                Encryption provides protection of initiator's identity against active attackers, since only a responder
+                <t> Encryption provides protection of initiator's identity against active attackers, since only a responder
                 a responder with the private key corresponding to the responder's certificate is able to decrypt the 
                 initiator's KEM certificate. 
                 </t>
@@ -636,6 +666,12 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
                     might not work.
                     </t>
                 </aside>
+
+                <t> If the certificate bundle is sent inband, then the Cert Encoding field in the Encrypted Certificate payload is set to 
+                a "X.509 bundle", otherwise it is set to "Hash and URL of X.509 bundle".
+                If certificate bundle is provided by reference, then a host can avoid downloading the peer's certificates 
+                if it cached them from a previous connection.
+                </t>
 
                 <t> Exactly one Encrypted Certificate payload <bcp14>MUST</bcp14> be present in the message.
                 </t>
@@ -660,7 +696,7 @@ HDR(IKE_INTERMEDIATE), SK {[CERTREQ+,]
                 AUTHKEM_CT notification in the same manner as SS_i.
                 </t>
 
-                <t> The responder also includes a new status type notification AUTHKEM_SSCONF (with type &lt;TBA3&gt;). 
+                <t> The responder also includes a new status type notification AUTHKEM_SSCONF (with type &lt;TBA3&gt; by IANA).
                 The Protocol ID and SPI Size fields are set to 0 (meaning no SPI is present). 
                 The notification data is computed as prf(SK_pr, SS_r), where prf is the negotiated PRF for this SA and SK_pr is from the current 
                 session keys (see Section 3.3.1 of <xref target="RFC9242" />).
@@ -698,7 +734,7 @@ SKEYSEED' = prf(SK_d, SS_i | SS_r)
             </section>
         </section>
 
-        <section anchor="ike_auth" title="The IKE_AUTH Exchange">
+        <section anchor="ike_auth" title="IKE_AUTH Exchange">
             <t> The IKE_AUTH exchange immediately follows the IKE_INTERMEDIATE exchange
             where peers sent each other encrypted SS values. The IKE_AUTH exchange is basically 
             unchanged from that defined in <xref target="RFC7296" />.
@@ -745,84 +781,6 @@ AUTH, SAi2, TSi, TSr}   --->
 	
 	</section>
 
-        <section anchor="alternatives" title="Alternative Sequences of Exchanges">
-            <t> This section is to be removed eventually. It provides ideas for alternative design of the protocol.
-            </t>
-
-            <t> The presented sequence of exchanges requires two additional exchanges (namely IKE_INTERMEDIATE exchanges)
-            for KEM-based authentication compared to signature-based authentication. It is possible to 
-            only have one additional IKE_INTERMEDIATE exchange, but this either results in some degradation
-            of security properties or leads to additional protocol complexity. Note, that the amount
-            of data exchanged over the wire would not changed, the different items would just
-            be combined in one message. This would increase the size of these messages that might
-            not be desirable from a reliable delivery point of view.
-            </t>
-
-            <section anchor="alternative_1" title="Alternative 1: Send Responder Certificate with Protection Only by the IKE_SA_INIT Keys">
-                <t> It is possible to exchange certificates before all additional key exchanges (and optional negotiation of the PPK)
-                are completed. In this case the certificates would only be protected with session keys computed after the IKE_SA_INIT
-                exchange (in case of hybrid key exchange that would be traditional key exchange).
-                </t>
-
-                <t> In this case, the exchange shown in <xref target="fig_intermediate_cert" /> is not needed,
-                since the certificates would be exchanged in the previous exchange. For example, the exchange 
-                shown in <xref target="fig_intermediate_addke_ppk" /> would look like:
-
-                <figure anchor="fig_intermediate_addke_ppk_alt1" title="Last Additional Key Exchange Combined with PPK Negotiation 
-                and Responder's Certificate">
-                <artwork><![CDATA[
-Initiator                                                   Responder
----------------------------------------------------------------------
-HDR(IKE_INTERMEDIATE), SK {KEi(m), 
-(PPK_IDENTITY_KEY), [CERTREQ+,]
-[N(SUPPORTED_AUTH_METHODS)]}   --->
-                            <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
-                                                (PPK_IDENTITY), CERT}
-                ]]></artwork> 
-                </figure>
-
-                This design would decrease the level of identity hiding for responder, since the session keys used to protect
-                the responder's certificates in case of hybrid key exchange could be cracked by an attacker using quantum computer.
-                </t>
-            </section>
-
-            <section anchor="alternative_2" title="Alternative 2: Use &quot;Future&quot; Keys to protect Responder's Certificate">
-                <t> In this case the exchange shown in <xref target="fig_intermediate_cert" /> is also not needed.
-                The responder sends its certificate in the previous IKE_INTERMEDIATE exchange using new Encrypted Certificate payload.
-                Note, that this exchange contains the last additional key exchange and optionally the PPK negotiation,
-                thus its messages are not yet protected with the session keys that would result in this exchange - 
-                the new keys are calculated only once the exchange completes. However, the responder can 
-                calculate the updated keys before it sends the response message. The idea is that 
-                the responder calculates new session keys and uses these "future" keys (for the next exchange) 
-                to protect its certificate in the Encrypted Certificate payload, 
-                that itself is protected with the "current" session keys in the Encrypted payload.
-                The Encrypted Certificate payload is protected using keys derived from the SK_d from the next exchange 
-                (see <xref target="encryptedcert" /> for details).
-                </t>
-
-                <figure anchor="fig_intermediate_addke_ppk_alt2" title="Last Additional Key Exchange Combined with PPK Negotiation 
-                and Encrypted Responder's Certificate">
-                <artwork><![CDATA[
-Initiator                                                   Responder
----------------------------------------------------------------------
-HDR(IKE_INTERMEDIATE), SK {KEi(m), 
-(PPK_IDENTITY_KEY), [CERTREQ+,]
-[N(SUPPORTED_AUTH_METHODS),]}   --->
-                            <---   HDR(IKE_INTERMEDIATE), SK {KEr(m),
-                                               (PPK_IDENTITY), ECERT}
-                ]]></artwork> 
-                </figure>
-
-                <t> This sequence of exchanges allows certificates to be protected at the same level as in the original
-                sequence of exchanges (in particular, both certificates can be protected with group PPK). 
-                The drawback is the added complexity for implementations, since it could break the 
-                traditional state transitions logic of IKE.
-                </t>
-
-            </section>
-
-        </section>
-
 
 <!--    <section title="KEM-based Authentication with Preshared Public Key" anchor="PPK">
 
@@ -846,7 +804,7 @@ HDR(IKE_INTERMEDIATE), SK {KEi(m),
     <section title="Data Formats" anchor="formats">
         <section title="Authentication Payload for KEM-based Authentication" anchor="kem-auth-method">
             <t> The format of the Authentication payload is defined in Section 3.8 of <xref target="RFC7296" />.
-            In case of KEM-based authentication the Auth Method is set to "KEM Authentication" (&lt;TBA1&gt;).
+            In case of KEM-based authentication the Auth Method is set to "KEM Authentication" (&lt;TBA1&gt; by IANA).
             The Authentication Data is computed as:
 
             <figure>
