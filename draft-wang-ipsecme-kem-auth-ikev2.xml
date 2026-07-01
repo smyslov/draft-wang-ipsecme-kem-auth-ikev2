@@ -376,7 +376,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
                 traditional and post-quantum key exchange methods is required.</li>
                 <li> Using group Postquantum Preshared Key (PPK) <xref target="RFC9867" /> can
                 contribute to the identity hiding, thus it is <bcp14>RECOMMENDED</bcp14> to use.</li>
-                <li> The ability to authenticate the full protocol transcript <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" /> protects
+                <li> The ability to authenticate the full protocol transcript <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention" /> protects
                 peers against downgrade attacks and <bcp14>SHOULD</bcp14> be used.</li>
             </ul>
         </t>
@@ -823,9 +823,9 @@ For the responder:
 
             The content of the InitiatorSignedOctets and the ResponderSignedOctets is defined 
             in Section 3.3.2 of <xref target="RFC9242" />. If full transcript authentication
-            is employed as specified in <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" />,
+            is employed as specified in <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention" />,
             then the InitiatorSignedOctets and the ResponderSignedOctets are additionally
-            modified as defined in <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" />.
+            modified as defined in <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention" />.
             </t>
         </section>
 
@@ -860,7 +860,7 @@ For the responder:
                 For "KEM Authentication" announcement the AlgorithmIdentifier <bcp14>MUST</bcp14> contain 
                 identifier of a KEM algorithm (and not, for example, of a signature algorithm). Identifiers
                 for KEM algorithms are specified in the corresponding documents for these algorithms
-                (e.g., for ML-KEM see <xref target="I-D.ietf-lamps-kyber-certificates" />).
+                (e.g., for ML-KEM see <xref target="RFC9935" />).
             </t>
         </section>
 
@@ -1157,15 +1157,16 @@ For the responder:
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7383.xml"/>
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9593.xml"/>
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9867.xml"/>
+		<xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9935.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-pqc-auth.xml"/>
 <!--        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.sfluhrer-ipsecme-ikev2-mldsa.xml"/> -->
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.hu-ipsecme-pqt-hybrid-auth.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.celi-wiggers-tls-authkem.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.wiggers-tls-authkem-psk.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-pquip-hybrid-signature-spectrums.xml"/>
-        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-lamps-kyber-certificates.xml"/>
+<!--    <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-lamps-kyber-certificates.xml"/>  -->
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-mlkem.xml"/>
-        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.smyslov-ipsecme-ikev2-downgrade-prevention.xml"/>
+        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-downgrade-prevention.xml"/>
 
         <reference anchor="X.690"  target="">
           <front>
@@ -1259,7 +1260,7 @@ For the responder:
               <t> .. </t>
             </abstract>
           </front>
-	         <seriesInfo name="Formal version published in the proceddings of EUROCRYPT 2023" value=""/>
+	         <seriesInfo name="Formal version published in the proceedings of EUROCRYPT 2023" value=""/>
 			 </reference>
 			 
 			 <reference anchor="I-D.D24"  target="https://datatracker.ietf.org/doc/draft-ietf-pquip-pqt-hybrid-terminology/">
