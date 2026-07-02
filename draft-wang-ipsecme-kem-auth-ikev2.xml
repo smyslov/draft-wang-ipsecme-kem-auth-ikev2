@@ -126,19 +126,24 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 <section title="Introduction">
 
 <section title="Notes of Change">
-
-<t> Version -04 replaces the main protocol sequence with one of alternative and removes other alternative sequences.</t>
-
-<t> Version -03 changes protocol sequence to add identity protection of initiator against active attacker. Two alternative protocol sequences are given.</t>
-
-<t> Version -02 was completely rewritten to accommodate ideas expressed in PQuAKE protocol.</t>
-
-<t> Version -01 contains  changes as a response to comments received at 122 meeting: </t>
-
-<ul spacing="normal">
-         
-        <li> More details about how each side does for running KEM authentication in <xref target="Exchanges"></xref>. </li>
-		
+<t> Version 04: Leave only one exchange sequence.</t>
+            <ul spacing="normal">     
+        <li> Making the alternative sequence 2 as the main and the only sequence of exchanges to achieve the minimum number of IKE_INTERMEDIATE exchanges and
+aligns PQuAKE <xref target="I-D.uri-cfrg-pquake"> </xref>. </li>
+        <li> Removed alternative sequences to Appendix?  </li>
+        </ul>
+<t> Version 03:  Add identity protection against active attackers.</t>
+            <ul spacing="normal">     
+        <li> Initiator’s identity protection against active attacker is added. </li>
+        <li> New payload Encrypted Certificate ECERT. </li>
+                        <li> New Certificate Encoding X.509 bundle.  </li>
+                        <li> New notifications: AUTHKEM_CT, AUTHKEM_SSCONF, AUTHKEM_DATA. </li>
+                        <li> Notification AUTHKEM_DATA in version 02 is deleted. </li>
+        </ul>       
+<t> Version 02:  Completely rewritten to accommodate ideas expressed in PQuAKE protocol.</t>
+<t> Version 01: Two changes have been made, as a response to comments received at 122 meeting. </t>
+<ul spacing="normal">     
+        <li> More details about how each side run KEM-based authentication in <xref target="Exchanges"></xref>. </li>
         <li> Added section about KEM authentication with preshared public key. </li>
         </ul>
 </section>
@@ -364,7 +369,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         private keys linked to their long-term KEM certificates.
         </t>
 
-        <t> More details about the KEM-based authentication are provided in &lt;citations for PQuAKE and other papers needed&gt;.
+        <t> More details about the KEM-based authentication are provided in <xref target="I-D.uri-cfrg-pquake" />.
         </t>
     </section>
     
@@ -1171,7 +1176,8 @@ For the responder:
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-pquip-hybrid-signature-spectrums.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-mlkem.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-downgrade-prevention.xml"/>
-
+		<xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.uri-cfrg-pquake.xml"/>
+		
         <reference anchor="X.690"  target="">
           <front>
             <title>Information Technology - ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER) </title>
