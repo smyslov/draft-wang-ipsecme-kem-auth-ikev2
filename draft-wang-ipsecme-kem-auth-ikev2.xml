@@ -25,7 +25,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 <rfc
   xmlns:xi="http://www.w3.org/2001/XInclude"
   category="std"
-  docName="draft-wang-ipsecme-kem-auth-ikev2-04"
+  docName="draft-wang-ipsecme-kem-auth-ikev2-05"
   ipr="trust200902"
   obsoletes=""
   updates=""
@@ -46,7 +46,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 <title abbrev="KEM-based Authentication for IKEv2"> KEM-based Authentication for IKEv2 with Post-quantum Security </title>
 <!--  [REPLACE/DELETE] abbrev. The abbreviated title is required if the full title is longer than 39 characters -->
 
-<seriesInfo name="Internet-Draft" value="draft-wang-ipsecme-kem-auth-ikev2-04"/>
+<seriesInfo name="Internet-Draft" value="draft-wang-ipsecme-kem-auth-ikev2-05"/>
    
     <author fullname="Guilin Wang" initials="G." role="editor" surname="Wang">
       <!-- [CHECK]
@@ -635,7 +635,7 @@ HDR(IKE_INTERMEDIATE), SK {... [CERTREQ+,]
                 ]]></artwork> 
                 </figure>
 
-                <t> Whether this exchange updates the current session keys or hot depends on the 
+                <t> Whether this exchange updates the current session keys or not depends on the 
                 purpose of the preceeding exchange. In particular, in case of <xref target="fig_intermediate_addke" />, 
                 <xref target="fig_intermediate_ppk" />, and <xref target="fig_intermediate_addke_ppk" />), the keys are updated
                 as the result of those exchanges. If this exchange is not combined with other IKE_INTERMEDIATE exchanges,
@@ -707,7 +707,14 @@ HDR(IKE_INTERMEDIATE), SK {... [CERTREQ+,]
 
                 <t> The responder also includes a new status type notification AUTHKEM_SSCONF (with type &lt;TBA3&gt; by IANA).
                 The Protocol ID and SPI Size fields are set to 0 (meaning no SPI is present). 
-                The notification data is computed as prf(SK_pr, SS_r), where prf is the negotiated PRF for this SA and SK_pr is from the current 
+                The notification data contains an SSCONF value computed as:
+
+<figure>
+<artwork><![CDATA[
+SSCONF = prf(SK_pr, SS_r)
+]]></artwork> 
+</figure>
+                where prf is the negotiated PRF for this SA and SK_pr is from the current 
                 session keys (see Section 3.3.1 of <xref target="RFC9242" />).
                 </t>
 
@@ -722,9 +729,9 @@ HDR(IKE_INTERMEDIATE), SK {N(AUTHKEM_CT), ECERT}   --->
                 </figure>
 
                 <t> Upon receiving the response message, the initiator decapsulates the received ciphertext CT_r and obtains
-                the SS_r key. Then the initiator computes prf(SK_pr, SS_r) using the obtained SS_r and verifies
-                that the value matches the content of the AUTHKEM_SSCONF notification. This ensures that there are no
-                mis-configurations and the the received SS_r value is indeed the same that was encapsulated.
+                the SS_r key. Then the initiator computes re-computes the SSCONF value using the obtained SS_r and verifies
+                that the value matches the content of the AUTHKEM_SSCONF notification data. This ensures that there are no
+                mis-configurations and the received SS_r value is indeed the same that was encapsulated.
                 </t>
 
                 <t> Upon completion of this exchange the session keys are updated. A new value of SKEYSEED is computed as:
@@ -831,7 +838,11 @@ For the responder:
             ]]></artwork>
             </figure>
 
-            The content of the InitiatorSignedOctets and the ResponderSignedOctets is defined 
+            The keys SK_pi and SK_pr used for these calculations are from the latest generation of the SK* keys
+            that is computed from SKEYSEED' (see <xref target="ike_intermediate_pqake" />).
+            </t>
+
+            <t> The content of the InitiatorSignedOctets and the ResponderSignedOctets is defined 
             in Section 3.3.2 of <xref target="RFC9242" />. If full transcript authentication
             is employed as specified in <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention" />,
             then the InitiatorSignedOctets and the ResponderSignedOctets are additionally
@@ -885,6 +896,8 @@ For the responder:
             as defined in Section 3.6 of <xref target="RFC7296" />.
             </t>
 
+            <!-- Should we say more about the Payload Header of the Encrypted Certificate payload? -->
+            
             <figure align="center" anchor="enccertpld" title="Encrypted Certificate Payload Format">
                 <artwork align="left"><![CDATA[
                         1                   2                   3
@@ -913,21 +926,42 @@ For the responder:
 
             <t> This document restricts the possible values of Cert Encoding in the ECERT payload 
             to either "X.509 bundle" (&lt;TBA5 by IANA&gt;) or "Hash and URL of X.509 bundle" (13).
+            Future specifications may define additional encodings allowed for use in this payload.
+            </t>
+
+            <t> The cryptographic processing of the Encrypted Certificate payload is identical to that
+            described in Section 3.14 of <xref target="RFC7296" /> (as well as any document updating
+            such processing for particular algorithms or modes, such as <xref target="RFC5282" />).
             </t>
 
             <t> The payload is encrypted and authenticated using the same encryption and integrity algorithms 
-            as were negotiated for IKE SA. The encryption and authentication keys are calculated as follows:
+            as were negotiated for IKE SA. The encryption key EC_e and the authentication key EC_a 
+            for protecting the Encrypted Certificate payload play the same role as SK_ei/SK_er and SK_ai/SK_ar keys for the Encrypted payload.
+            They are calculated as follows:
             </t>
 
             <figure>
                 <artwork align="left"><![CDATA[
-  EC_a | EC_e = prf+ ( SK_d, K )
+  EC_a | EC_e = prf+ ( K, Ni | Nr )
             ]]></artwork>
             </figure>
 
-            <t>where SK_d is from the current session keys (see Section 3.3.1 of <xref target="RFC9242" />) and K is the key 
-            to protect the certificate data (like SS_i in <xref target="ike_intermediate_pqake" />).
+            <t>where Ni and Nr are the nonces from the IKE_SA_INIT exchange, stripped of any headers, and K is a key used 
+            to protect the certificate data in a particular step of the protocol. Depending on the place where the Encrypted Certificate 
+            is sent in the protocol, the value of K will be different. In particular:
+            <ul>
+                <li> For ECERT sent by the responder (as per <xref target="fig_intermediate_cert" />) the SK_d value for the next IKE_INTERMEDIATE is used as the K.
+                </li>
+                <li> For ECERT sent by the initiator (as per <xref target="fig_intermediate_kem" />) the SS_i value is used as the K.
+                </li>
+            </ul>
             </t>
+
+            <aside>
+                <t> Note that if AEAD transform is negotiated, then the EC_a key will not be used and thus will be empty.
+                This is the same as for SK_ai/SK_ar keys for the Encrypted payload.
+                </t>
+            </aside>
 
         </section>
     </section>
@@ -1168,6 +1202,7 @@ For the responder:
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9593.xml"/>
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9867.xml"/>
         <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9935.xml"/>
+        <xi:include href="https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5282.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-pqc-auth.xml"/>
 <!--        <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.sfluhrer-ipsecme-ikev2-mldsa.xml"/> -->
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.hu-ipsecme-pqt-hybrid-auth.xml"/>
