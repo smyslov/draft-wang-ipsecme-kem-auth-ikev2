@@ -126,9 +126,10 @@ Have a section that is just examples of what is new in v3 (such as new table fea
 <section title="Introduction">
 
 <section title="Notes of Change">
-
-<t> Version -02 was completely rewritten to accommodate ideas expressed in PQuAKE protocol.</t>
-
+<t> Version -05: <xref target="Security" /> was fully updated, with togther a number of editorial changes. </t>
+<t> Version -04: ?? </t>
+<t> Version -03: ?? </t>
+<t> Version -02 was completely rewritten to accommodate ideas expressed in PQuAKE protocol <xref target="I-D.uri-cfrg-pquake" />. </t
 <t> Two changes have been made in version -01, as a response to comments received at 122 meeting: </t>
 
 <ul spacing="normal">
@@ -160,8 +161,8 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     <xref target="I-D.hu-ipsecme-pqt-hybrid-auth"> </xref> specifies how to run general hybrid PQ/T digital algorithms in IKEv2<!-- via introducing 
     some extensions in the SUPPORTED_AUTH_METHODS Notify -->. </t>
 
-    <!-- <t> For all of those Internet standard drafts, it is the same that the corresponding public key certificates and singatures for the involved 
-    siganture algorithms are exchanged via the IKE_INTERMEDIATE Exchange, defined in <xref target="RFC9242"></xref>. </t> -->
+    <!-- <t> For all of those Internet standard drafts, it is the same that the corresponding public key certificates and signatures for the involved 
+    signature algorithms are exchanged via the IKE_INTERMEDIATE Exchange, defined in <xref target="RFC9242"></xref>. </t> -->
 
     <t> Motivated by the fact that ML-KEM <xref target="FIPS203"></xref> is much more efficient than ML-DSA <xref target="FIPS204"></xref>, 
     "KEM-based Authentication for TLS 1.3" <xref target="I-D.celi-wiggers-tls-authkem"></xref> <xref target="I-D.wiggers-tls-authkem-psk"></xref> 
@@ -339,6 +340,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
     </section>
 	
     <section title="Protocol Overview for KEM-based Authentication" anchor="Overview">
+		
         <t> With a KEM-based authentication in IKEv2 peers first perform an ephemeral key exchange that allows
         them to derive session keys for protecting subsequent exchanges. This ephemeral key exchange
         may take place entirely in the IKE_SA_INIT exchange or be accompanied by a series of subsequent IKE_INTERMEDIATE
@@ -360,8 +362,8 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         private keys linked to their long-term KEM certificates.
         </t>
 
-        <t> Mode details about the KEM-based authentication are provided in &lt;citations for PQuAKE and other papers needed&gt;.
-        </t>
+        <t> Mode details about the KEM-based authentication are provided in <xref target="I-D.uri-cfrg-pquake" /> and the corresonding paper. </t>
+		
     </section>
     
     <section title="Protocol Details for KEM-based Authentication" anchor="Protocol">
@@ -788,7 +790,7 @@ AUTH, SAi2, TSi, TSr}   --->
         one's KEM public key and the associated certificate, so that the other party can return back an encapsualted secret as a challenge, 
         before finally releasing the MAC for the AUTH data. This is naturally not as efficient as signature authentication, 
         which can be sent out in one message consisting of message being authenticated, the digital signarure, and also the corresponing 
-        public key certificate used to verify the singature.</t>
+        public key certificate used to verify the signature.</t>
 
         <t> However, the situation will be changed when both parties have already acquied each other's public key (and the associated certificate) 
         before running KEM-based authentication. Such a public key may be pre-installed, cached, or provisoned via out-bound ways. 
@@ -938,7 +940,7 @@ For the responder:
 		--> 
 
   <section title="Security Objectives and Assumptions" anchor="Sec1">
-	<t> The security considerations of IKEv2 and the extensions used with KEM based mechanism continue to apply. In particular, encryption of an exchange before completion of authentication does not, by itself, establish the identity of the communicating peer. Implementations MUST distinguish protection under provisional session keys from successful peer authentication. See <xref target="RFC7296"/> and <xref target="RFC9242"/>. </t>
+	<t> The security considerations of IKEv2 and the extensions used with KEM based mechanism continue to apply. In particular, encryption of an exchange before completion of authentication does not, by itself, establish the identity of the communicating peer. Implementations MUST distinguish protection under provisional session keys from successful peer authentication. See <xref target="RFC7296" /> and <xref target="RFC9242" />. </t>
 
 	  <t> The intended security properties are mutual authentication, confidentiality of established session keys, binding of authentication to the current exchange, and protection against replay and modification. Identity protection and forward secrecy require additional conditions described below. </t>
 
@@ -956,7 +958,7 @@ For the responder:
 	   <t>Authentication MUST bind the peer's identity and role to the current protocol instance. Implementations MUST preserve the prescribed ordering of exchanges, key updates, and transcript processing. A message accepted in one role, session, or key generation MUST NOT be accepted as evidence of authentication in another. </t>
 	   <t>The intermediate-exchange authentication rules are security-critical: they connect exchanges protected before authentication to the eventual AUTH verification. Implementations MUST apply those rules consistently, including when an exchange combines several extensions. See <xref target="RFC9242"/>, Section 3.3.2. </t>
 	   <t>Deployments requiring KEM authentication, post-quantum key establishment, or preshared-key protection MUST enforce those requirements through local policy. Failure to negotiate a required mechanism MUST terminate establishment rather than trigger an automatic retry with weaker requirements. </t>
-	   <t>Full-transcript authentication <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention"/> <xref target="RFC9370"/>
+	   <t>Full-transcript authentication <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" /> <xref target="RFC9370" />
 SHOULD be used. Implementations MUST NOT treat an unauthenticated capability announcement, error, or timeout as authorization to weaken security policy. </t>
   </section>
 	
@@ -1228,8 +1230,10 @@ SHOULD be used. Implementations MUST NOT treat an unauthenticated capability ann
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-lamps-kyber-certificates.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-mlkem.xml"/>
         <xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.smyslov-ipsecme-ikev2-downgrade-prevention.xml"/>
-
-        <reference anchor="X.690"  target="">
+        
+		<xi:include href="https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.uri-cfrg-pquake.xml"/>
+        
+		<reference anchor="X.690"  target="">
           <front>
             <title>Information Technology - ASN.1 encoding rules: Specification of Basic Encoding Rules (BER), Canonical Encoding Rules (CER) and Distinguished Encoding Rules (DER) </title>
             <author fullname="ITU-T " initials="" surname="ITU-T" />
@@ -1242,7 +1246,120 @@ SHOULD be used. Implementations MUST NOT treat an unauthenticated capability ann
         </reference>
 		
       </references>
-    
+
+	<section title="Relationship to PQuAKE" anchor="Relationship">
+	   
+	   
+	   <section title="Shared Design" anchor="R1">
+	      <t>PQuAKE achieves authenticated key establishment with four conceptual stages:</t>
+	      <ul spacing="normal">
+              <li> Establish provisional confidentiality and exchange protected credentials. </li>
+	          <li> Encapsulate fresh secrets to the peers' long-term authentication public keys. </li>
+			  <li> Combine the ephemeral and authentication contributions to derive session keys. </li>
+	          <li> Confirm possession of the resulting keys. </li>
+          </ul> 
+
+
+		  <t>This construction avoids requiring each endpoint to generate an online digital signature over the handshake. Certificate signatures may still be required to validate the long-term public keys. </t>
+	      <t> The mechanism in this document adopts the same general approach within IKEv2. Verion-04 of this draft explicitly identifies alignment with PQuAKE <xref target="I-D.uri-cfrg-pquake" /> as a design objective. Its IKE-specific processing remains authoritative for interoperability (see <xref target="Protocol"/> of the draft). </t>
+	      
+	   </section>
+	   
+	   <section title="Conceptual Correspondence" anchor="R2">
+	      
+		  <table anchor="Corres_table" align="center">
+          <name>Conceptual Correspondence</name>
+          <thead>
+            <tr>
+              <th align="left"> PQuAKE <xref target="I-D.uri-cfrg-pquake" /> Component</th>
+              <th align="left"> Corresponding IKEv2 Mechanism Specified in This Draft</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td align="left"> <tt> Ephemeral shared secret </tt></td>
+              <td align="left"> <tt> Initial and any additional key exchanges </tt> </td>
+            </tr>
+           
+           <tr>
+              <td align="left"> <tt> Optional identity-hiding preshared secret </tt></td>
+              <td align="left"> <tt> PPK contribution before credential disclosure </tt> </td>
+            </tr>
+           
+           <tr>
+              <td align="left"> <tt> Protected certificate exchange </tt></td>
+              <td align="left"> <tt> ECERT payloads </tt> </td>
+            </tr>
+
+            <tr>
+              <td align="left"> <tt> Encapsulation to long-term peer keys </tt></td>
+              <td align="left"> <tt> AUTHKEM_CT notifications </tt> </td>
+            </tr>
+			
+			<tr>
+              <td align="left"> <tt> Combination of authentication secrets </tt></td>
+              <td align="left"> <tt> Post-encapsulation IKE key update </tt> </td>
+            </tr>
+
+            <tr>
+              <td align="left"> <tt> Directional key confirmation </tt></td>
+              <td align="left"> <tt> Final IKE_AUTH AUTH payloads </tt> </td>
+            </tr>
+			
+			<tr>
+              <td align="left"> <tt> Binding of exchanged messages </tt></td>
+              <td align="left"> <tt> IKEv2 authenticated octets and intermediate-exchange transcript processing </tt> </td>
+            </tr>
+			
+          </tbody>
+        </table>
+		
+		<t> This correspondence identifies functional roles. It does not necessarily imply identical encodings, derivation functions, or security proofs. </t>
+		
+	   </section>
+	   
+	   <section title="Differences Relevant to Security" anchor="R3">
+	      
+		  <t> PQuAKE defines a protocol-specific transcript and derives separate confirmation and session keys. An IKEv2 integration must instead be evaluated using the actual IKEv2 key hierarchy, authenticated octets, extension interactions, and acceptance conditions. </t>
+	      
+		  <t> Revision -04 also introduces asymmetric credential protection: the initiator's ECERT protection depends on a secret encapsulated to the responder. Its AUTHKEM_SSCONF check precedes final authentication and MUST NOT be treated as a replacement for AUTH verification. See <xref target="ike_intermediate_pqake" /> for detail. </t>
+	      
+		  <t>These differences affect what each participant knows at each stage. In particular, analysis must distinguish knowledge of a provisional encryption key, possession of a certified private key, agreement on an identity, and successful authorization. </t>
+
+	   </section>
+	   
+	   <!--
+	   <section title="Scope of Formal Analysis" anchor="R4">
+	   
+	      <t> The PQuAKE document <xref target="I-D.uri-cfrg-pquake" /> reports analysis using Verifpal and CryptoVerif, while stating that publication of the complete proof artifacts is in progress. Those reported results do not, by themselves, establish the security of this IKEv2 adaptation.</t>
+		  
+	      <t> A dedicated analysis should model: </t>
+		  <ul spacing="normal">
+              <li> The exact key schedule and transcript construction. </li>
+	          <li> Concurrent sessions, retransmissions, and combined intermediate exchanges. </li>
+			  <li> Disclosure of long-term, ephemeral, and group secrets at different times. </li>
+	          <li> Credential validation and agreement on IKE identities.</li>
+			  <li> The separate identity-protection claims for initiator and responder. </li>
+	          <li> Failure behavior, implicit rejection, and cross-protocol use of authentication keys.</li>
+          </ul> 
+		  
+	      <t> Claims about quantum adversaries must state the computational model and assumptions explicitly. A symbolic result or a proof in the classical random-oracle model must not be presented as establishing security in the quantum random-oracle model without additional justification. </t>
+	      
+	   </section>
+	   
+	   <section title="Specification Details Requiring Resolution" anchor="R5">
+	   
+	      <t> Before making a precise security argument for the IKEv2 adaptation, this draft may need to unambiguously specify the derivation inputs, key generation, direction, and authenticated coverage for each use of ECERT. <xref target="encryptedcert" /> currently uses a generic input K; its relationship to the responder-side “future” keys needs particular clarity. </t>
+		  
+	      <t> The specification should also define acceptance and failure behavior for every confirmation check and document interactions with other authentication extensions. Similarity to PQuAKE provides design rationale; those concrete definitions are necessary for interoperable implementations and a defensible security analysis. </t>
+	      
+	   </section>
+	   --> 
+	   
+  </section>
+
+	
     <section anchor="Acknowledgements" numbered="false">
         <name>Acknowledgements</name>
         <t>Thom Wiggers shared an idea to provide identity protection of one of the peers against active attackers.
