@@ -930,16 +930,78 @@ For the responder:
     </section>
 
     <section title="Security Considerations" anchor="Security">
-
-        <t> To be done later.  1) It may be not a good idea by directly showing the decapsulated secret ss as the means of authentication here. 
+        <!--
+		<t> To be done later.  1) It may be not a good idea by directly showing the decapsulated secret ss as the means of authentication here. 
         The reason is that the entity being authenticated may employ the owner of the KEM public/private key pair as an oracle to decapsualte 
         the secret via running a different session, normally within a separate protocol or scenario where directly showing such a secret is harmless. 
         2) It may be preferable or <bcp14>MUST</bcp14> limit the use of such a KEM certificate only for KEM authentication. </t>
+		--> 
 
+  <section title="Security Objectives and Assumptions" anchor="Sec1">
+	<t> The security considerations of IKEv2 and the extensions used with KEM based mechanism continue to apply. In particular, encryption of an exchange before completion of authentication does not, by itself, establish the identity of the communicating peer. Implementations MUST distinguish protection under provisional session keys from successful peer authentication. See <xref target="RFC7296"/> and <xref target="RFC9242"/>. </t>
+
+	  <t> The intended security properties are mutual authentication, confidentiality of established session keys, binding of authentication to the current exchange, and protection against replay and modification. Identity protection and forward secrecy require additional conditions described below. </t>
+
+	  <t> These properties depend on secure KEMs, a cryptographically strong pseudorandom function, secure encryption and integrity algorithms, adequate randomness, correct credential validation, and correct implementation of the complete protocol state machine. Selection of a post-quantum KEM alone does not establish post-quantum security for the complete protocol. </t>
+  </section>
+
+  <section title="Authentication and Authorization" anchor="Sec2">
+	  <t>KEM-based authentication establishes possession of a private decapsulation key through confirmation of secrets encapsulated to the corresponding public key. A valid certificate establishes a binding between a public key and an identity; receipt of that certificate does not establish that the current peer possesses its private key. </t>
+	  <t>An implementation MUST NOT declare authentication successful solely because a certificate validates, a ciphertext decapsulates, or an encrypted payload passes its integrity check. Authentication requires successful verification of the peer's final AUTH payload using the keys and authenticated octets prescribed for the current exchange. </t>
+	  <t>Certificate validation and local authorization policy MUST establish that the credential is acceptable for the claimed IKE identity and requested access. An implementation MUST NOT infer authorization merely from membership in a trusted certification hierarchy. In particular, differences between a certificate's identity information and an Identification payload require an explicit policy decision. </t>
+	<t> A group preshared key establishes, at most, membership in the group of entities possessing that key. It MUST NOT replace individual peer authentication where individual accountability or authorization is required. </t>
+  </section>
+
+   <section title="Transcript Binding and Downgrade Resistance" anchor="Sec3">
+	   <t>Authentication MUST bind the peer's identity and role to the current protocol instance. Implementations MUST preserve the prescribed ordering of exchanges, key updates, and transcript processing. A message accepted in one role, session, or key generation MUST NOT be accepted as evidence of authentication in another. </t>
+	   <t>The intermediate-exchange authentication rules are security-critical: they connect exchanges protected before authentication to the eventual AUTH verification. Implementations MUST apply those rules consistently, including when an exchange combines several extensions. See <xref target="RFC9242"/>, Section 3.3.2. </t>
+	   <t>Deployments requiring KEM authentication, post-quantum key establishment, or preshared-key protection MUST enforce those requirements through local policy. Failure to negotiate a required mechanism MUST terminate establishment rather than trigger an automatic retry with weaker requirements. </t>
+	   <t>Full-transcript authentication <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention"/> <xref target="RFC9370"/>
+SHOULD be used. Implementations MUST NOT treat an unauthenticated capability announcement, error, or timeout as authorization to weaken security policy. </t>
+  </section>
+	
+   <section title="Key Separation and Decapsulation Oracles" anchor="Sec4">
+	   <t> Long-term authentication keys MUST be separated from ephemeral key-establishment keys. A long-term authentication private key MUST NOT also be exposed through a service that returns raw decapsulation results or otherwise enables an attacker to obtain the secret needed to authenticate in this protocol. </t>
+	   <t>Certificates and key-management policy SHOULD restrict authentication KEM keys to their intended use. Where an applicable certificate profile provides usage restrictions, implementations MUST enforce them. </t>
+	   <t>Raw KEM shared secrets MUST NOT be transmitted as authentication evidence or recorded in ordinary diagnostic logs. Key confirmation MUST use the protocol-defined cryptographic computations and session context. </t>  
+       <t>Keys for certificate protection, final authentication, IKE protection, and application traffic require separation by purpose and, where applicable, direction. A protocol revision introducing additional derivations MUST specify unambiguous inputs and domain separation; implementations MUST NOT invent incompatible derivation rules locally. </t>
+  </section>
+	
+	<section title="Forward Secrecy and Post-Quantum Protection" anchor="Sec5">
+	   <t>Forward secrecy concerns compromise of long-term credentials after completion of an otherwise uncompromised session. It does not protect a session whose ephemeral secrets or traffic keys were exposed during execution. </t>
+	   <t>Post-quantum forward secrecy requires a suitable ephemeral post-quantum contribution, or a suitable hybrid construction containing such a contribution, that remains secure against the adversary under consideration. Long-term KEM authentication secrets alone do not provide this property: an adversary retaining ciphertexts AUTHKEM_CTs may recover their shared secrets after obtaining the corresponding long-term KEM private keys. </t>
+	   <t>The selected key schedule must preserve the protection provided by the ephemeral contribution. Implementations MUST erase obsolete ephemeral private keys, encapsulation randomness, intermediate shared secrets, and superseded key material when they are no longer required.</t>
+	   <t>When multiple key exchanges are used, their negotiation, combination, and key updates MUST follow the applicable specification. Security of the resulting composition must not be inferred simply from the presence of several algorithms (See <xref target="RFC9370"/>). </t>
+	   <t>A claim of post-quantum authentication also depends on the credential-validation path. A quantum-vulnerable certification signature can undermine authentication against an attacker capable of forging that signature, even when the certified public key belongs to a post-quantum KEM. </t>
+  </section>
+	
+<section title="Identity Protection" anchor="Sec6">
+	   <t>Identity protection must be evaluated separately for passive observers, active attackers, authorized peers, and holders of any group preshared key. </t>
+	   <t>For the initiator, as shown in Figure 6, confidentiality of credentials encrypted using a secret encapsulated to the responder depends on validating the responder's credential and checking that it represents an acceptable intended peer before releasing the initiator's credentials. Accepting an arbitrary trusted credential can disclose identity information to an unintended but credentialed responder. </t>
+	   <t>An unauthenticated active initiator can establish its own ephemeral exchange with a responder. Consequently, as shown in Figure 5, ephemeral encryption alone does not prevent that initiator from obtaining responder identity information. A group preshared key can restrict this exposure to parties possessing that key, provided its contribution protects the credentials before they are disclosed. The placement of preshared-key mixing therefore matters; RFC 9867 provides protection earlier in IKE establishment than the mechanism it extends. </t>
+	   <t>Neither credential encryption nor a group preshared key hides identities from an authorized peer or a compromised group member. Group-key compromise expands the population able to probe protected identities and requires an appropriate revocation and replacement policy. </t>
+	   <t>Certificate retrieval, revocation checking, message sizes, timing, addresses, and stable identifiers can reveal information independently of credential encryption. Privacy-sensitive deployments SHOULD prefer in-band credential delivery and SHOULD assess the observable behavior of external retrieval and validation services. Session-key forward secrecy does not automatically imply forward secrecy of identity information. Recorded encrypted credentials may become readable after later compromise of the secrets used specifically to protect them. </t>
+</section>
+		
+<section title="Invalid Inputs, Failure Handling, and Side Channels" anchor="Sec7">
+	   <t>Implementations MUST validate payload lengths, algorithm identifiers, encodings, certificate structures, and algorithm-specific public-key and ciphertext requirements before using them. Validation MUST include bounds on allocation, certificate-chain processing, and nested structures. </t>
+	   <t>For KEMs providing implicit rejection, implementations MUST preserve that behavior. They MUST NOT expose whether a correctly sized ciphertext produced an ordinary shared secret or an implicit-rejection secret through explicit notifications, logging interfaces accessible to the attacker, or avoidable timing differences. </t>
+	   <t>Cryptographic comparisons MUST use appropriate constant-time operations. Private-key operations and subsequent failure processing SHOULD avoid secret-dependent observable behavior. </t>
+	   <t>Malformed framing may require immediate rejection. Failures involving credential identity, authorization, or decapsulation require additional care because distinguishable responses can disclose identity or private-key information. Implementations SHOULD minimize such distinctions without reporting successful authentication or allowing unauthorized access. </t>
+	   <t>Failure handling MUST release provisional state and prevent application use of keys from an unsuccessful exchange. </t>	
+</section>
+
+<section title="Resource Exhaustion and Retransmission" anchor="Sec8">
+	   <t>Certificate processing, KEM operations, external retrieval, and fragment reassembly create opportunities for denial of service before peer authentication completes. </t>
+	   <t>Implementations SHOULD apply bounded concurrency, timeouts, rate limits, and limits on message size, certificate-chain depth, retrieval activity, and reassembly storage. Appropriate IKEv2 cookie mechanisms SHOULD be used where applicable. </t>
+	   <t>Retransmission MUST preserve the original exchange semantics. In particular, an implementation MUST NOT accidentally repeat a key update, change an encapsulated secret within the same retransmitted exchange, or reuse an encryption nonce with different plaintext under the same key. </t>
+	   <t>URLs received from an unauthenticated peer MUST NOT permit unrestricted access to local files, internal services, or unbounded remote resources. </t>
+	   </section>
+		
 </section>
 	
 
-    <section title="IANA Considerations" anchor="IANA">
+<section title="IANA Considerations" anchor="IANA">
 
         <t> IANA is requested to make the following changes in the IKEv2 registries 
          "Internet Key Exchange Version 2 (IKEv2) Parameters" <xref target="IANA-IKEv2"></xref>:
