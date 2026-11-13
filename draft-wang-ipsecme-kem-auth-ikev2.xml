@@ -362,7 +362,7 @@ Have a section that is just examples of what is new in v3 (such as new table fea
         private keys linked to their long-term KEM certificates.
         </t>
 
-        <t> Mode details about the KEM-based authentication are provided in <xref target="I-D.uri-cfrg-pquake" /> and the corresonding paper. </t>
+        <t> More details about the KEM-based authentication are provided in <xref target="I-D.uri-cfrg-pquake" /> and the corresonding paper. </t>
 		
     </section>
     
