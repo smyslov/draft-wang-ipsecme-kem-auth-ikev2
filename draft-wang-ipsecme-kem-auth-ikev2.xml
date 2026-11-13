@@ -214,7 +214,7 @@ aligns PQuAKE <xref target="I-D.uri-cfrg-pquake"> </xref>. </li>
         a secret decapsulation key sk, when a security parameter k is given.</li>
         <li>Encaps(pk) -> (ct, ss): A probabilistic encapsulation algorithm, which takes as input a public encapsulation key pk and 
         outputs a ciphertext ct and a shared secret ss. </li>
-        <li> Decaps(sk, ct) -> ss: A decapsulation algorithm, which takes as input a secret decapsulation key sk and a ciphertext ct and
+        <li> Decaps(sk, ct) -> ss: A decapsulation algorithm, which takes as inputs a secret decapsulation key sk and a ciphertext ct and
         outputs a shared secret ss.</li>
       </ul>
 	  
