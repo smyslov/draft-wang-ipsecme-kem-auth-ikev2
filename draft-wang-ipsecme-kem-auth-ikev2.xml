@@ -136,10 +136,10 @@ aligns PQuAKE <xref target="I-D.uri-cfrg-pquake"> </xref>. </li>
 <t> Version 03:  Add identity protection against active attackers.</t>
             <ul spacing="normal">     
         <li> Initiator’s identity protection against active attacker is added. </li>
-        <li> New payload Encrypted Certificate ECERT. </li>
-                        <li> New Certificate Encoding X.509 bundle.  </li>
-                        <li> New notifications: AUTHKEM_CT, AUTHKEM_SSCONF, AUTHKEM_DATA. </li>
-                        <li> Notification AUTHKEM_DATA in version 02 is deleted. </li>
+        <li> New payload Encrypted Certificate (ECERT). </li>
+        <li> New Certificate Encoding X.509 bundle.  </li>
+        <li> New notifications: AUTHKEM_CT, AUTHKEM_SSCONF, AUTHKEM_DATA. </li>
+        <li> Notification AUTHKEM_DATA in version 02 is deleted. </li>
         </ul>       
 <t> Version 02:  Completely rewritten to accommodate ideas expressed in PQuAKE protocol.</t>
 <t> Version 01: Two changes have been made, as a response to comments received at 122 meeting. </t>
@@ -699,7 +699,7 @@ HDR(IKE_INTERMEDIATE), SK {... [CERTREQ+,]
                 </t>
 
                 <t> The initiator's certificate and the responder's one, sent in the previous exchange, <bcp14>MAY</bcp14> contain public keys 
-                for different KEMs, provided that peers support these KEMs, - there is no requirement that they must be for the same KEM.
+                for different KEMs, provided that peers support these KEMs, - there is no requirement that the KEMs must be the same.
                 </t>
 
                 <t> The responder then sends a response message containing the ciphertext CT_r, produced as a result 
@@ -873,7 +873,7 @@ For the responder:
             
                 <list style="symbols">
                     <t>Length - Length of the announcement in octets, must be greater than 3.</t>
-                    <t>Auth Method - Announced authentication method, in this case it is "KEM Authentication".</t>
+                    <t>Auth Method - Announced authentication method, in this case it is "KEM Authentication" &lt;TBA1 by IANA&gt;.</t>
                     <t>Cert Link - Links this announcement with a particular CA; see Section 3.2.2 of <xref target="RFC9593" /> for details.</t>
                     <t>AlgorithmIdentifier ASN.1 object - the AlgorithmIdentifier of PKIX (see Section 4.1.1.2 of <xref target="RFC5280" />), 
                     encoded using distinguished encoding rules (DER) <xref target="X.690" />. 
@@ -987,7 +987,13 @@ For the responder:
     </section>
 
     <section title="Interaction with Other IKEv2 Extensions" anchor="interaction">
-        <t> To be added.
+        <t> Note: Initial thoughts, need expanding.</t>
+
+        <t> KEM can be replaced as a composite KEM, as defined in Lamps WG. The composition job is done at crypto-engineering level, 
+        so using a composite KEM for KEM based authentication does not require to change any thing at the protocol layer of IKEv2.
+        </t>
+
+        <t> Extension is straightforward using  reliable transport.
         </t>
     </section>
 
@@ -1018,7 +1024,7 @@ For the responder:
 	   <t>Authentication MUST bind the peer's identity and role to the current protocol instance. Implementations MUST preserve the prescribed ordering of exchanges, key updates, and transcript processing. A message accepted in one role, session, or key generation MUST NOT be accepted as evidence of authentication in another. </t>
 	   <t>The intermediate-exchange authentication rules are security-critical: they connect exchanges protected before authentication to the eventual AUTH verification. Implementations MUST apply those rules consistently, including when an exchange combines several extensions. See <xref target="RFC9242"/>, Section 3.3.2. </t>
 	   <t>Deployments requiring KEM authentication, post-quantum key establishment, or preshared-key protection MUST enforce those requirements through local policy. Failure to negotiate a required mechanism MUST terminate establishment rather than trigger an automatic retry with weaker requirements. </t>
-	   <t>Full-transcript authentication <xref target="I-D.smyslov-ipsecme-ikev2-downgrade-prevention" /> <xref target="RFC9370" />
+	   <t>Full-transcript authentication <xref target="I-D.ietf-ipsecme-ikev2-downgrade-prevention" /> <xref target="RFC9370" />
 SHOULD be used. Implementations MUST NOT treat an unauthenticated capability announcement, error, or timeout as authorization to weaken security policy. </t>
   </section>
 	
@@ -1308,7 +1314,6 @@ SHOULD be used. Implementations MUST NOT treat an unauthenticated capability ann
       </references>
 
 	<section title="Relationship to PQuAKE" anchor="Relationship">
-	   
 	   
 	   <section title="Shared Design" anchor="R1">
 	      <t>PQuAKE achieves authenticated key establishment with four conceptual stages:</t>

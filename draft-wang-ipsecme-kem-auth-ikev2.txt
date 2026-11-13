@@ -79,17 +79,40 @@ Table of Contents
        6.2.3.  Encrypted Certificate Payload . . . . . . . . . . . .  17
    7.  Interaction with Other IKEv2 Extensions . . . . . . . . . . .  19
    8.  Security Considerations . . . . . . . . . . . . . . . . . . .  19
-   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  19
-   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  20
-     10.1.  Normative References . . . . . . . . . . . . . . . . . .  20
-     10.2.  Informative References . . . . . . . . . . . . . . . . .  21
-   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  24
-   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  24
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  24
+     8.1.  Security Objectives and Assumptions . . . . . . . . . . .  19
+     8.2.  Authentication and Authorization  . . . . . . . . . . . .  20
+     8.3.  Transcript Binding and Downgrade Resistance . . . . . . .  20
+     8.4.  Key Separation and Decapsulation Oracles  . . . . . . . .  21
+     8.5.  Forward Secrecy and Post-Quantum Protection . . . . . . .  21
+     8.6.  Identity Protection . . . . . . . . . . . . . . . . . . .  22
+     8.7.  Invalid Inputs, Failure Handling, and Side Channels . . .  23
+     8.8.  Resource Exhaustion and Retransmission  . . . . . . . . .  24
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  24
+   10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  25
+     10.1.  Normative References . . . . . . . . . . . . . . . . . .  25
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  26
+   Appendix A.  Relationship to PQuAKE . . . . . . . . . . . . . . .  29
+     A.1.  Shared Design . . . . . . . . . . . . . . . . . . . . . .  29
+     A.2.  Conceptual Correspondence . . . . . . . . . . . . . . . .  29
+     A.3.  Differences Relevant to Security  . . . . . . . . . . . .  30
+   Acknowledgements  . . . . . . . . . . . . . . . . . . . . . . . .  30
+   Contributors  . . . . . . . . . . . . . . . . . . . . . . . . . .  31
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  31
 
 1.  Introduction
 
 1.1.  Notes of Change
+
+   Version 05: Section 8 was fully updated, with togther a number of
+   editorial changes.
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                  [Page 2]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
 
    Version 04: Leave only one exchange sequence.
 
@@ -104,15 +127,7 @@ Table of Contents
 
    *  Initiator’s identity protection against active attacker is added.
 
-   *  New payload Encrypted Certificate ECERT.
-
-
-
-
-Wang & Smyslov             Expires 17 May 2027                  [Page 2]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
+   *  New payload Encrypted Certificate (ECERT).
 
    *  New Certificate Encoding X.509 bundle.
 
@@ -141,6 +156,20 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    key exchanges in IKEv2 [RFC9370] was introduced to achieve post-
    quantum (PQ) security for the key exchange.
 
+
+
+
+
+
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                  [Page 3]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
    "Signature Authentication in the Internet Key Exchange Version 2
    (IKEv2) using PQC" [I-D.ietf-ipsecme-ikev2-pqc-auth] specifies how
    NIST PQ digital algorithms ML-DSA [FIPS204] and SLH-DSA [FIPS205] can
@@ -162,14 +191,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    previously presented in [SSW20], followed by a number of research
    papers then.  Besides saving communication overhead and computational
    time, as pointed out in [I-D.celi-wiggers-tls-authkem], KEM-based
-
-
-
-Wang & Smyslov             Expires 17 May 2027                  [Page 3]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
-
    authentication also reduces implementation code size, as the code for
    PQ signature may not be needed, and KEM-based authentication can re-
    use the KEM code for ephemeral key establishment.
@@ -197,6 +218,14 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
       which generates a public encapsulation key pk and a secret
       decapsulation key sk, when a security parameter k is given.
 
+
+
+
+Wang & Smyslov             Expires 17 May 2027                  [Page 4]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
    *  Encaps(pk) -> (ct, ss): A probabilistic encapsulation algorithm,
       which takes as input a public encapsulation key pk and outputs a
       ciphertext ct and a shared secret ss.
@@ -216,15 +245,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    *  Sign(ssk, m) -> s: A deterministic or probabilistic signature
       generation algorithm, which takes as input a private signing key
       ssk and a message m, and outputs a signature s.
-
-
-
-
-
-Wang & Smyslov             Expires 17 May 2027                  [Page 4]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
    *  Verify(spk, s, m) -> b: A deterministic verification algorithm,
       which takes as input a public verifying key spk, a signature s and
@@ -255,32 +275,18 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    *  The private key size of ML-DSA is about 1.5 times of the
       decapsulation key size of ML-KEM,
 
-   *  The public size of ML-DSA is about 1.6 times of that of ML-KEM,
-      and
-
-   *  The signature size of ML-DSA is about 3 times of the ciphertext
-      size of ML-KEM.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 Wang & Smyslov             Expires 17 May 2027                  [Page 5]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
+
+   *  The public size of ML-DSA is about 1.6 times of that of ML-KEM,
+      and
+
+   *  The signature size of ML-DSA is about 3 times of the ciphertext
+      size of ML-KEM.
 
    +=============+===================+===================+=============+
    |             |    Private Key/   |    Public Key/    |  Signature/ |
@@ -317,12 +323,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    cycles.  By ignoring the small difference between ML-KEM and its
    informal version Kyber, also ML-DSA and its informal version
    Dilithium, the following Table 2 is obtained.
-
-
-
-
-
-
 
 
 
@@ -379,12 +379,12 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 5.  Protocol Overview for KEM-based Authentication
 
-   In IKEv2, two peers first perform an ephemeral key exchange that
-   allows them to derive session keys for protecting subsequent
-   exchanges.  This ephemeral key exchange may take place entirely in
-   the IKE_SA_INIT exchange or be accompanied by a series of subsequent
-   IKE_INTERMEDIATE exchanges [RFC9370], in which case it would be a
-   hybrid key exchange.
+   With a KEM-based authentication in IKEv2 peers first perform an
+   ephemeral key exchange that allows them to derive session keys for
+   protecting subsequent exchanges.  This ephemeral key exchange may
+   take place entirely in the IKE_SA_INIT exchange or be accompanied by
+   a series of subsequent IKE_INTERMEDIATE exchanges [RFC9370], in which
+   case it would be a hybrid key exchange.
 
 
 
@@ -407,7 +407,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    certificates.
 
    More details about the KEM-based authentication are provided in
-   [I-D.uri-cfrg-pquake].
+   [I-D.uri-cfrg-pquake] and the corresonding paper.
 
 6.  Protocol Details for KEM-based Authentication
 
@@ -759,7 +759,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    The initiator's certificate and the responder's one, sent in the
    previous exchange, MAY contain public keys for different KEMs,
    provided that peers support these KEMs, - there is no requirement
-   that they must be for the same KEM.
+   that the KEMs must be the same.
 
    The responder then sends a response message containing the ciphertext
    CT_r, produced as a result of encapsulation of a random value SS_r
@@ -920,7 +920,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
       than 3.
 
    *  Auth Method - Announced authentication method, in this case it is
-      "KEM Authentication".
+      "KEM Authentication" <TBA1 by IANA>.
 
    *  Cert Link - Links this announcement with a particular CA; see
       Section 3.2.2 of [RFC9593] for details.
@@ -1033,18 +1033,283 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 7.  Interaction with Other IKEv2 Extensions
 
-   To be added.
+   Note: Initial thoughts, need expanding.
+
+   KEM can be replaced as a composite KEM, as defined in Lamps WG.  The
+   composition job is done at crypto-engineering level, so using a
+   composite KEM for KEM based authentication does not require to change
+   any thing at the protocol layer of IKEv2.
+
+   Extension is straightforward using reliable transport.
 
 8.  Security Considerations
 
-   To be done later.  1) It may be not a good idea by directly showing
-   the decapsulated secret ss as the means of authentication here.  The
-   reason is that the entity being authenticated may employ the owner of
-   the KEM public/private key pair as an oracle to decapsualte the
-   secret via running a different session, normally within a separate
-   protocol or scenario where directly showing such a secret is
-   harmless.  2) It may be preferable or MUST limit the use of such a
-   KEM certificate only for KEM authentication.
+8.1.  Security Objectives and Assumptions
+
+   The security considerations of IKEv2 and the extensions used with KEM
+   based mechanism continue to apply.  In particular, encryption of an
+   exchange before completion of authentication does not, by itself,
+   establish the identity of the communicating peer.  Implementations
+   MUST distinguish protection under provisional session keys from
+   successful peer authentication.  See [RFC7296] and [RFC9242].
+
+   The intended security properties are mutual authentication,
+   confidentiality of established session keys, binding of
+   authentication to the current exchange, and protection against replay
+   and modification.  Identity protection and forward secrecy require
+   additional conditions described below.
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 19]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
+   These properties depend on secure KEMs, a cryptographically strong
+   pseudorandom function, secure encryption and integrity algorithms,
+   adequate randomness, correct credential validation, and correct
+   implementation of the complete protocol state machine.  Selection of
+   a post-quantum KEM alone does not establish post-quantum security for
+   the complete protocol.
+
+8.2.  Authentication and Authorization
+
+   KEM-based authentication establishes possession of a private
+   decapsulation key through confirmation of secrets encapsulated to the
+   corresponding public key.  A valid certificate establishes a binding
+   between a public key and an identity; receipt of that certificate
+   does not establish that the current peer possesses its private key.
+
+   An implementation MUST NOT declare authentication successful solely
+   because a certificate validates, a ciphertext decapsulates, or an
+   encrypted payload passes its integrity check.  Authentication
+   requires successful verification of the peer's final AUTH payload
+   using the keys and authenticated octets prescribed for the current
+   exchange.
+
+   Certificate validation and local authorization policy MUST establish
+   that the credential is acceptable for the claimed IKE identity and
+   requested access.  An implementation MUST NOT infer authorization
+   merely from membership in a trusted certification hierarchy.  In
+   particular, differences between a certificate's identity information
+   and an Identification payload require an explicit policy decision.
+
+   A group preshared key establishes, at most, membership in the group
+   of entities possessing that key.  It MUST NOT replace individual peer
+   authentication where individual accountability or authorization is
+   required.
+
+8.3.  Transcript Binding and Downgrade Resistance
+
+   Authentication MUST bind the peer's identity and role to the current
+   protocol instance.  Implementations MUST preserve the prescribed
+   ordering of exchanges, key updates, and transcript processing.  A
+   message accepted in one role, session, or key generation MUST NOT be
+   accepted as evidence of authentication in another.
+
+   The intermediate-exchange authentication rules are security-critical:
+   they connect exchanges protected before authentication to the
+   eventual AUTH verification.  Implementations MUST apply those rules
+   consistently, including when an exchange combines several extensions.
+   See [RFC9242], Section 3.3.2.
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 20]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
+   Deployments requiring KEM authentication, post-quantum key
+   establishment, or preshared-key protection MUST enforce those
+   requirements through local policy.  Failure to negotiate a required
+   mechanism MUST terminate establishment rather than trigger an
+   automatic retry with weaker requirements.
+
+   Full-transcript authentication
+   [I-D.ietf-ipsecme-ikev2-downgrade-prevention] [RFC9370] SHOULD be
+   used.  Implementations MUST NOT treat an unauthenticated capability
+   announcement, error, or timeout as authorization to weaken security
+   policy.
+
+8.4.  Key Separation and Decapsulation Oracles
+
+   Long-term authentication keys MUST be separated from ephemeral key-
+   establishment keys.  A long-term authentication private key MUST NOT
+   also be exposed through a service that returns raw decapsulation
+   results or otherwise enables an attacker to obtain the secret needed
+   to authenticate in this protocol.
+
+   Certificates and key-management policy SHOULD restrict authentication
+   KEM keys to their intended use.  Where an applicable certificate
+   profile provides usage restrictions, implementations MUST enforce
+   them.
+
+   Raw KEM shared secrets MUST NOT be transmitted as authentication
+   evidence or recorded in ordinary diagnostic logs.  Key confirmation
+   MUST use the protocol-defined cryptographic computations and session
+   context.
+
+   Keys for certificate protection, final authentication, IKE
+   protection, and application traffic require separation by purpose
+   and, where applicable, direction.  A protocol revision introducing
+   additional derivations MUST specify unambiguous inputs and domain
+   separation; implementations MUST NOT invent incompatible derivation
+   rules locally.
+
+8.5.  Forward Secrecy and Post-Quantum Protection
+
+   Forward secrecy concerns compromise of long-term credentials after
+   completion of an otherwise uncompromised session.  It does not
+   protect a session whose ephemeral secrets or traffic keys were
+   exposed during execution.
+
+   Post-quantum forward secrecy requires a suitable ephemeral post-
+   quantum contribution, or a suitable hybrid construction containing
+   such a contribution, that remains secure against the adversary under
+   consideration.  Long-term KEM authentication secrets alone do not
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 21]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
+   provide this property: an adversary retaining ciphertexts AUTHKEM_CTs
+   may recover their shared secrets after obtaining the corresponding
+   long-term KEM private keys.
+
+   The selected key schedule must preserve the protection provided by
+   the ephemeral contribution.  Implementations MUST erase obsolete
+   ephemeral private keys, encapsulation randomness, intermediate shared
+   secrets, and superseded key material when they are no longer
+   required.
+
+   When multiple key exchanges are used, their negotiation, combination,
+   and key updates MUST follow the applicable specification.  Security
+   of the resulting composition must not be inferred simply from the
+   presence of several algorithms (See [RFC9370]).
+
+   A claim of post-quantum authentication also depends on the
+   credential-validation path.  A quantum-vulnerable certification
+   signature can undermine authentication against an attacker capable of
+   forging that signature, even when the certified public key belongs to
+   a post-quantum KEM.
+
+8.6.  Identity Protection
+
+   Identity protection must be evaluated separately for passive
+   observers, active attackers, authorized peers, and holders of any
+   group preshared key.
+
+   For the initiator, as shown in Figure 6, confidentiality of
+   credentials encrypted using a secret encapsulated to the responder
+   depends on validating the responder's credential and checking that it
+   represents an acceptable intended peer before releasing the
+   initiator's credentials.  Accepting an arbitrary trusted credential
+   can disclose identity information to an unintended but credentialed
+   responder.
+
+   An unauthenticated active initiator can establish its own ephemeral
+   exchange with a responder.  Consequently, as shown in Figure 5,
+   ephemeral encryption alone does not prevent that initiator from
+   obtaining responder identity information.  A group preshared key can
+   restrict this exposure to parties possessing that key, provided its
+   contribution protects the credentials before they are disclosed.  The
+   placement of preshared-key mixing therefore matters; RFC 9867
+   provides protection earlier in IKE establishment than the mechanism
+   it extends.
+
+
+
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 22]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
+   Neither credential encryption nor a group preshared key hides
+   identities from an authorized peer or a compromised group member.
+   Group-key compromise expands the population able to probe protected
+   identities and requires an appropriate revocation and replacement
+   policy.
+
+   Certificate retrieval, revocation checking, message sizes, timing,
+   addresses, and stable identifiers can reveal information
+   independently of credential encryption.  Privacy-sensitive
+   deployments SHOULD prefer in-band credential delivery and SHOULD
+   assess the observable behavior of external retrieval and validation
+   services.  Session-key forward secrecy does not automatically imply
+   forward secrecy of identity information.  Recorded encrypted
+   credentials may become readable after later compromise of the secrets
+   used specifically to protect them.
+
+8.7.  Invalid Inputs, Failure Handling, and Side Channels
+
+   Implementations MUST validate payload lengths, algorithm identifiers,
+   encodings, certificate structures, and algorithm-specific public-key
+   and ciphertext requirements before using them.  Validation MUST
+   include bounds on allocation, certificate-chain processing, and
+   nested structures.
+
+   For KEMs providing implicit rejection, implementations MUST preserve
+   that behavior.  They MUST NOT expose whether a correctly sized
+   ciphertext produced an ordinary shared secret or an implicit-
+   rejection secret through explicit notifications, logging interfaces
+   accessible to the attacker, or avoidable timing differences.
+
+   Cryptographic comparisons MUST use appropriate constant-time
+   operations.  Private-key operations and subsequent failure processing
+   SHOULD avoid secret-dependent observable behavior.
+
+   Malformed framing may require immediate rejection.  Failures
+   involving credential identity, authorization, or decapsulation
+   require additional care because distinguishable responses can
+   disclose identity or private-key information.  Implementations SHOULD
+   minimize such distinctions without reporting successful
+   authentication or allowing unauthorized access.
+
+   Failure handling MUST release provisional state and prevent
+   application use of keys from an unsuccessful exchange.
+
+
+
+
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 23]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
+8.8.  Resource Exhaustion and Retransmission
+
+   Certificate processing, KEM operations, external retrieval, and
+   fragment reassembly create opportunities for denial of service before
+   peer authentication completes.
+
+   Implementations SHOULD apply bounded concurrency, timeouts, rate
+   limits, and limits on message size, certificate-chain depth,
+   retrieval activity, and reassembly storage.  Appropriate IKEv2 cookie
+   mechanisms SHOULD be used where applicable.
+
+   Retransmission MUST preserve the original exchange semantics.  In
+   particular, an implementation MUST NOT accidentally repeat a key
+   update, change an encapsulated secret within the same retransmitted
+   exchange, or reuse an encryption nonce with different plaintext under
+   the same key.
+
+   URLs received from an unauthenticated peer MUST NOT permit
+   unrestricted access to local files, internal services, or unbounded
+   remote resources.
 
 9.  IANA Considerations
 
@@ -1053,18 +1318,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    [IANA-IKEv2]:
 
    1.  Define a new payload type in the "IKEv2 Payload Types" registry:
-
-
-
-
-
-
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 19]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
                  +=======+=======================+==========+
                  | Value |   Next Payload Type   | Notation |
@@ -1084,6 +1337,14 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
                     +-------+-----------------------------+
 
                                     Table 4
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 24]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
 
    3.  Define three new status type notifications in the "IKEv2 Notify
        Message Status Types" registry:
@@ -1115,13 +1376,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 10.1.  Normative References
 
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 20]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
-
    [IANA-IKEv2]
               "Internet Key Exchange Version 2 (IKEv2) Parameters",
               <https://www.iana.org/assignments/ikev2-parameters/
@@ -1140,6 +1394,13 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 25]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
 
    [RFC9242]  Smyslov, V., "Intermediate Exchange in the Internet Key
               Exchange Protocol Version 2 (IKEv2)", RFC 9242,
@@ -1170,14 +1431,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    [HAZ24]    Huang, J., Adomnicai, A., Zhang, J., Dai, W., Liu, Y.,
               Cheung, R. C. C., Koc, C. K., and D. Chen, "Revisiting
               Keccak and Dilithium Implementations on ARMv7-M", IACR
-
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 21]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
-
               Transactions on Cryptographic Hardware and Embedded
               Systems. ISSN 2569-2925, Vol. 2024, No. 2, pp. 1–24.,
               March 2024,
@@ -1197,6 +1450,14 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               Traditional (PQ/T) Hybrid PKI Authentication in the
               Internet Key Exchange Version 2 (IKEv2)", Work in
               Progress, Internet-Draft, draft-hu-ipsecme-pqt-hybrid-
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 26]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
               auth-05, 26 June 2026,
               <https://datatracker.ietf.org/doc/html/draft-hu-ipsecme-
               pqt-hybrid-auth-05>.
@@ -1225,15 +1486,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
               ikev2-pqc-auth-12>.
 
-
-
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 22]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
-
    [I-D.ietf-pquip-hybrid-signature-spectrums]
               Bindel, N., Hale, B., Connolly, D., and F. D, "Hybrid
               signature spectrums", Work in Progress, Internet-Draft,
@@ -1248,6 +1500,19 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               cfrg-pquake-01, 16 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-uri-cfrg-
               pquake-01>.
+
+
+
+
+
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 27]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
 
    [I-D.wiggers-tls-authkem-psk]
               Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
@@ -1280,16 +1545,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               Version 2 (IKEv2)", RFC 9370, DOI 10.17487/RFC9370, May
               2023, <https://www.rfc-editor.org/info/rfc9370>.
 
-
-
-
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 23]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
-
    [RFC9593]  Smyslov, V., "Announcing Supported Authentication Methods
               in the Internet Key Exchange Protocol Version 2 (IKEv2)",
               RFC 9593, DOI 10.17487/RFC9593, July 2024,
@@ -1308,6 +1563,13 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               DOI 10.17487/RFC9935, March 2026,
               <https://www.rfc-editor.org/info/rfc9935>.
 
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 28]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
    [SSW20]    Schwabe, P., Stebila, D., and T. Wiggers, "Post-quantum
               TLS without handshake signatures", In the Proceedings of
               ACM CCS 2020, pages 1461–1480. ACM
@@ -1319,10 +1581,106 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               (DER)", ISO/IEC 8825-1:2021 (E), ITU-T Recommendation
               X.690, February 2021.
 
+Appendix A.  Relationship to PQuAKE
+
+A.1.  Shared Design
+
+   PQuAKE achieves authenticated key establishment with four conceptual
+   stages:
+
+   *  Establish provisional confidentiality and exchange protected
+      credentials.
+
+   *  Encapsulate fresh secrets to the peers' long-term authentication
+      public keys.
+
+   *  Combine the ephemeral and authentication contributions to derive
+      session keys.
+
+   *  Confirm possession of the resulting keys.
+
+   This construction avoids requiring each endpoint to generate an
+   online digital signature over the handshake.  Certificate signatures
+   may still be required to validate the long-term public keys.
+
+   The mechanism in this document adopts the same general approach
+   within IKEv2.  Verion-04 of this draft explicitly identifies
+   alignment with PQuAKE [I-D.uri-cfrg-pquake] as a design objective.
+   Its IKE-specific processing remains authoritative for
+   interoperability (see Section 6 of the draft).
+
+A.2.  Conceptual Correspondence
+
+     +==============================+===============================+
+     | PQuAKE [I-D.uri-cfrg-pquake] | Corresponding IKEv2 Mechanism |
+     | Component                    | Specified in This Draft       |
+     +==============================+===============================+
+     | Ephemeral shared secret      | Initial and any additional    |
+     |                              | key exchanges                 |
+     +------------------------------+-------------------------------+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 29]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
+     | Optional identity-hiding     | PPK contribution before       |
+     | preshared secret             | credential disclosure         |
+     +------------------------------+-------------------------------+
+     | Protected certificate        | ECERT payloads                |
+     | exchange                     |                               |
+     +------------------------------+-------------------------------+
+     | Encapsulation to long-term   | AUTHKEM_CT notifications      |
+     | peer keys                    |                               |
+     +------------------------------+-------------------------------+
+     | Combination of               | Post-encapsulation IKE key    |
+     | authentication secrets       | update                        |
+     +------------------------------+-------------------------------+
+     | Directional key confirmation | Final IKE_AUTH AUTH payloads  |
+     +------------------------------+-------------------------------+
+     | Binding of exchanged         | IKEv2 authenticated octets    |
+     | messages                     | and intermediate-exchange     |
+     |                              | transcript processing         |
+     +------------------------------+-------------------------------+
+
+                    Table 7: Conceptual Correspondence
+
+   This correspondence identifies functional roles.  It does not
+   necessarily imply identical encodings, derivation functions, or
+   security proofs.
+
+A.3.  Differences Relevant to Security
+
+   PQuAKE defines a protocol-specific transcript and derives separate
+   confirmation and session keys.  An IKEv2 integration must instead be
+   evaluated using the actual IKEv2 key hierarchy, authenticated octets,
+   extension interactions, and acceptance conditions.
+
+   Revision -04 also introduces asymmetric credential protection: the
+   initiator's ECERT protection depends on a secret encapsulated to the
+   responder.  Its AUTHKEM_SSCONF check precedes final authentication
+   and MUST NOT be treated as a replacement for AUTH verification.  See
+   Section 6.1.2.2 for detail.
+
+   These differences affect what each participant knows at each stage.
+   In particular, analysis must distinguish knowledge of a provisional
+   encryption key, possession of a certified private key, agreement on
+   an identity, and successful authorization.
+
 Acknowledgements
 
    Thom Wiggers shared an idea to provide identity protection of one of
    the peers against active attackers.
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 30]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
 
 Contributors
 
@@ -1338,12 +1696,6 @@ Authors' Addresses
    SINGAPORE 138588
    Singapore
    Email: Wang.Guilin@huawei.com
-
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 24]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
    Valery Smyslov (editor)
@@ -1381,20 +1733,4 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wang & Smyslov             Expires 17 May 2027                 [Page 25]
+Wang & Smyslov             Expires 17 May 2027                 [Page 31]
