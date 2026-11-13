@@ -950,9 +950,25 @@ For the responder:
             to protect the certificate data in a particular step of the protocol. Depending on the place where the Encrypted Certificate 
             is sent in the protocol, the value of K will be different. In particular:
             <ul>
-                <li> For ECERT sent by the responder (as per <xref target="fig_intermediate_cert" />) the SK_d value for the next IKE_INTERMEDIATE is used as the K.
+                <li> For ECERT sent by the responder (as per <xref target="fig_intermediate_cert" />) the SK_d value for the next IKE_INTERMEDIATE is used as the K, 
+                which resulted to the following calculation:
+
+                <figure>
+                    <artwork align="left"><![CDATA[
+      EC_a | EC_e = prf+ ( SK_d(next), Ni | Nr )
+                ]]></artwork>
+                </figure>
+
                 </li>
-                <li> For ECERT sent by the initiator (as per <xref target="fig_intermediate_kem" />) the SS_i value is used as the K.
+                <li> For ECERT sent by the initiator (as per <xref target="fig_intermediate_kem" />) the SS_i value is used as the K,
+                which resulted to the following calculation:
+
+                <figure>
+                    <artwork align="left"><![CDATA[
+      EC_a | EC_e = prf+ ( SS_i, Ni | Nr )
+                ]]></artwork>
+                </figure>
+
                 </li>
             </ul>
             </t>

@@ -5,8 +5,8 @@
 IP Security Maintenance and Extensions                      G. Wang, Ed.
 Internet-Draft                                       Huawei Int. Pte Ltd
 Intended status: Standards Track                         V. Smyslov, Ed.
-Expires: 16 May 2027                                          ELVIS-PLUS
-                                                        12 November 2026
+Expires: 17 May 2027                                          ELVIS-PLUS
+                                                        13 November 2026
 
 
      KEM-based Authentication for IKEv2 with Post-quantum Security
@@ -35,7 +35,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 May 2027.
+   This Internet-Draft will expire on 17 May 2027.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 1]
+Wang & Smyslov             Expires 17 May 2027                  [Page 1]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 2]
+Wang & Smyslov             Expires 17 May 2027                  [Page 2]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -165,7 +165,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 3]
+Wang & Smyslov             Expires 17 May 2027                  [Page 3]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -202,7 +202,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
       ciphertext ct and a shared secret ss.
 
    *  Decaps(sk, ct) -> ss: A decapsulation algorithm, which takes as
-      input a secret decapsulation key sk and a ciphertext ct and
+      inputs a secret decapsulation key sk and a ciphertext ct and
       outputs a shared secret ss.
 
    By following the definition given in
@@ -221,7 +221,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 4]
+Wang & Smyslov             Expires 17 May 2027                  [Page 4]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -277,7 +277,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 5]
+Wang & Smyslov             Expires 17 May 2027                  [Page 5]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -333,7 +333,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 6]
+Wang & Smyslov             Expires 17 May 2027                  [Page 6]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -389,7 +389,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 7]
+Wang & Smyslov             Expires 17 May 2027                  [Page 7]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -445,7 +445,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 8]
+Wang & Smyslov             Expires 17 May 2027                  [Page 8]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -501,7 +501,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                  [Page 9]
+Wang & Smyslov             Expires 17 May 2027                  [Page 9]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -557,7 +557,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 10]
+Wang & Smyslov             Expires 17 May 2027                 [Page 10]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -613,7 +613,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 11]
+Wang & Smyslov             Expires 17 May 2027                 [Page 11]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -669,7 +669,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 12]
+Wang & Smyslov             Expires 17 May 2027                 [Page 12]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -725,7 +725,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 13]
+Wang & Smyslov             Expires 17 May 2027                 [Page 13]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -781,7 +781,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 14]
+Wang & Smyslov             Expires 17 May 2027                 [Page 14]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -837,7 +837,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 15]
+Wang & Smyslov             Expires 17 May 2027                 [Page 15]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -893,7 +893,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 16]
+Wang & Smyslov             Expires 17 May 2027                 [Page 16]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -949,7 +949,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 17]
+Wang & Smyslov             Expires 17 May 2027                 [Page 17]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -1005,7 +1005,7 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-Wang & Smyslov             Expires 16 May 2027                 [Page 18]
+Wang & Smyslov             Expires 17 May 2027                 [Page 18]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
@@ -1017,10 +1017,15 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    the value of K will be different.  In particular:
 
    *  For ECERT sent by the responder (as per Figure 5) the SK_d value
-      for the next IKE_INTERMEDIATE is used as the K.
+      for the next IKE_INTERMEDIATE is used as the K, which resulted to
+      the following calculation:
+
+            EC_a | EC_e = prf+ ( SK_d(next), Ni | Nr )
 
    *  For ECERT sent by the initiator (as per Figure 6) the SS_i value
-      is used as the K.
+      is used as the K, which resulted to the following calculation:
+
+            EC_a | EC_e = prf+ ( SS_i, Ni | Nr )
 
       |  Note that if AEAD transform is negotiated, then the EC_a key
       |  will not be used and thus will be empty.  This is the same as
@@ -1049,6 +1054,18 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
    1.  Define a new payload type in the "IKEv2 Payload Types" registry:
 
+
+
+
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 19]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
                  +=======+=======================+==========+
                  | Value |   Next Payload Type   | Notation |
                  +=======+=======================+==========+
@@ -1056,15 +1073,6 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
                  +-------+-----------------------+----------+
 
                                    Table 3
-
-
-
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 19]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
    2.  Define a new authentication method in the "IKEv2 Authentication
        Method" registry:
@@ -1107,20 +1115,17 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 10.1.  Normative References
 
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 20]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
    [IANA-IKEv2]
               "Internet Key Exchange Version 2 (IKEv2) Parameters",
               <https://www.iana.org/assignments/ikev2-parameters/
               ikev2-parameters.xhtml>.
-
-
-
-
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 20]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1165,18 +1170,19 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
    [HAZ24]    Huang, J., Adomnicai, A., Zhang, J., Dai, W., Liu, Y.,
               Cheung, R. C. C., Koc, C. K., and D. Chen, "Revisiting
               Keccak and Dilithium Implementations on ARMv7-M", IACR
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 21]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
               Transactions on Cryptographic Hardware and Embedded
               Systems. ISSN 2569-2925, Vol. 2024, No. 2, pp. 1–24.,
               March 2024,
               <https://tches.iacr.org/index.php/TCHES/article/
               view/11419>.
-
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 21]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
    [I-D.celi-wiggers-tls-authkem]
               Wiggers, T., Celi, S., Schwabe, P., Stebila, D., and N.
@@ -1219,20 +1225,21 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               <https://datatracker.ietf.org/doc/html/draft-ietf-ipsecme-
               ikev2-pqc-auth-12>.
 
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 22]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
    [I-D.ietf-pquip-hybrid-signature-spectrums]
               Bindel, N., Hale, B., Connolly, D., and F. D, "Hybrid
               signature spectrums", Work in Progress, Internet-Draft,
               draft-ietf-pquip-hybrid-signature-spectrums-07, 20 June
               2025, <https://datatracker.ietf.org/doc/html/draft-ietf-
               pquip-hybrid-signature-spectrums-07>.
-
-
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 22]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
    [I-D.uri-cfrg-pquake]
               Blumenthal, U., Luo, B., O'Melia, S., Torres, G., and D.
@@ -1273,22 +1280,20 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
               Version 2 (IKEv2)", RFC 9370, DOI 10.17487/RFC9370, May
               2023, <https://www.rfc-editor.org/info/rfc9370>.
 
+
+
+
+
+
+Wang & Smyslov             Expires 17 May 2027                 [Page 23]
+
+Internet-Draft     KEM-based Authentication for IKEv2      November 2026
+
+
    [RFC9593]  Smyslov, V., "Announcing Supported Authentication Methods
               in the Internet Key Exchange Protocol Version 2 (IKEv2)",
               RFC 9593, DOI 10.17487/RFC9593, July 2024,
               <https://www.rfc-editor.org/info/rfc9593>.
-
-
-
-
-
-
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 23]
-
-Internet-Draft     KEM-based Authentication for IKEv2      November 2026
-
 
    [RFC9867]  Smyslov, V., "Mixing Preshared Keys in the
               IKE_INTERMEDIATE and CREATE_CHILD_SA Exchanges of the
@@ -1335,17 +1340,15 @@ Authors' Addresses
    Email: Wang.Guilin@huawei.com
 
 
-   Valery Smyslov (editor)
-   ELVIS-PLUS
-   PO Box 81
 
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 24]
+Wang & Smyslov             Expires 17 May 2027                 [Page 24]
 
 Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
+   Valery Smyslov (editor)
+   ELVIS-PLUS
+   PO Box 81
    Moscow (Zelenograd)
    124460
    Russian Federation
@@ -1394,7 +1397,4 @@ Internet-Draft     KEM-based Authentication for IKEv2      November 2026
 
 
 
-
-
-
-Wang & Smyslov             Expires 16 May 2027                 [Page 25]
+Wang & Smyslov             Expires 17 May 2027                 [Page 25]
